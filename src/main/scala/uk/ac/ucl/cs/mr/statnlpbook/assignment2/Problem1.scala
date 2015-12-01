@@ -24,8 +24,51 @@ object Problem1 {
                             predict: (X, Weights) => Y,
                             iterations: Int = 2,
                             learningRate:Double = 1.0): Weights = {
-    //TODO implement the perceptron trainer
-    ???
+
+    //Initialize weights lambda
+    val lambda = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
+
+    //for epoch e in 1..K
+    for(n <- 0 until iterations) {
+
+      //for instance (Xi, Ci) in the training set
+      for (i <- instances) {
+
+        //find the current solution cHat <- argmax c P lambda(c|x)
+        val cHat = predict(i._1, lambda)
+
+        //if cHat is not equal to Ci
+        if (cHat != i._2) {
+
+          //f(Xi, Ci)
+          val default_vector = feat(i._1, i._2)
+
+          //f(Xi, cHat)
+          val argmax_vector = feat(i._1, cHat)
+
+          //for each key in feature vector f(Xi, Ci)
+          default_vector.keys.foreach(k =>
+
+            //lambda k = f(Xi, Ci)(k) * learningRate
+            lambda(k) += default_vector(k) * learningRate
+          )
+
+          //for each key in feature vector f(Xi, cHat)
+          argmax_vector.keys.foreach(k =>
+
+            //lambda(k) = f(Xi, cHat)(k) * learningRate
+            lambda(k) -= argmax_vector(k) * learningRate
+          )
+
+        }
+
+      }
+
+    }
+
+    //return lambda
+    lambda
+
   }
 
 
