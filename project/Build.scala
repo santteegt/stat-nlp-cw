@@ -10,6 +10,7 @@ object BuildSettings {
     organization := buildOrganization,
     scalaVersion := buildScalaVersion,
     scalacOptions := Seq("-unchecked", "-deprecation", "-feature"), //, "-Yrangepos"?
+    unmanagedBase := baseDirectory.value / "lib",
     libraryDependencies ++= Seq(
       "org.sameersingh.scalaplot" % "scalaplot" % "0.1",
       "com.google.guava" % "guava" % "18.0",
