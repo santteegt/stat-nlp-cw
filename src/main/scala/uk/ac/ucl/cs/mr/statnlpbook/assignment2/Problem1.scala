@@ -32,7 +32,7 @@ object Problem1 {
     for(n <- 0 until iterations) {
 
       //for instance (Xi, Ci) in the training set
-      for (i <- instances) {
+      for (i <- instances){
 
         //find the current solution cHat <- argmax c P lambda(c|x)
         val cHat = predict(i._1, lambda)
