@@ -25,39 +25,41 @@ object Problem1 {
                             iterations: Int = 2,
                             learningRate:Double = 1.0): Weights = {
 
-    //Initialize weights lambda
-    val lambda = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
+    //Initialize weights lambdaGradient
+    val lambdaGradient = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
 
     //for epoch e in 1..K
     for(n <- 0 until iterations) {
 
       //for instance (Xi, Ci) in the training set
-      for (i <- instances){
+      for (i <- instances) {
 
-        //find the current solution cHat <- argmax c P lambda(c|x)
-        val cHat = predict(i._1, lambda)
+        //find the current solution cHat <- argmax c P lambdaGradient(c|x)
+        val cHat = predict(i._1, lambdaGradient)
 
-        //if cHat is not equal to Ci
-        if (cHat != i._2) {
+        //if cHat is not equal to Gold Label
+        if (cHat != i._2) {  //if incorrect, UPDATE TOWARDS GOLD, AWAY FROM PREDICTION
 
           //f(Xi, Ci)
-          val default_vector = feat(i._1, i._2)
+          val featureGold = feat(i._1, i._2)
 
           //f(Xi, cHat)
-          val argmax_vector = feat(i._1, cHat)
+          val featurePrediction = feat(i._1, cHat)
+
+          //PERFORMING GRADIENT ASCENT ITERATION
 
           //for each key in feature vector f(Xi, Ci)
-          default_vector.keys.foreach(k =>
+          featureGold.keys.foreach(k =>
 
-            //lambda k = f(Xi, Ci)(k) * learningRate
-            lambda(k) += default_vector(k) * learningRate
+            //lambdaGradient k += f(Xi, Ci)(k) * learningRate
+            lambdaGradient(k) += featureGold(k) * learningRate
           )
 
           //for each key in feature vector f(Xi, cHat)
-          argmax_vector.keys.foreach(k =>
+          featurePrediction.keys.foreach(k =>
 
-            //lambda(k) = f(Xi, cHat)(k) * learningRate
-            lambda(k) -= argmax_vector(k) * learningRate
+            //lambdaGradient(k) -= f(Xi, cHat)(k) * learningRate
+            lambdaGradient(k) -= featurePrediction(k) * learningRate
           )
 
         }
@@ -65,10 +67,7 @@ object Problem1 {
       }
 
     }
-
-    //return lambda
-    lambda
-
+    lambdaGradient
   }
 
 
@@ -117,6 +116,19 @@ object Problem1 {
     println(Evaluation(gold, precompiledPred, Set("None")).toString)
   }
 
+  /**
+   *
+   * BIAS definition -> Difference between the estimator's expedted value and the true value of the parameter
+   *                    being estimated
+   *
+   * BIAS analysis -> balance the estimators by adding a bias on the population not seen, and thus the process
+   *                  does no fall in an underestimate of its values (e.g. underfitting in linear regression)
+   *
+   *               -> convenient to have a non-zero threshold for positive prediction
+   * @param x sentence Candidate
+   * @param y label
+   * @return Feature vector of the the Candidate's labels
+   */
   def defaultTriggerFeatures(x: Candidate, y: Label): FeatureVector = {
     val doc = x.doc
     val begin = x.begin

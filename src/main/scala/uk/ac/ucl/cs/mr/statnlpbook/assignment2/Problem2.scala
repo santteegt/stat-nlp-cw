@@ -25,13 +25,14 @@ object Problem2 {
                                iterations: Int = 2,
                                learningRate: Double = 1.0): Weights = {
 
-    //Initialize weights lambda
-    val lambda = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
+    //Initialize weights lambdaWeights
+    val lambdaWeights = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
 
-    //Initialize average weights lambda
-    val average_lambda = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
+    //Initialize average weights lambdaWeights
+    val averageLambda = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
 
-    var c = 1
+    val totalSteps = iterations * instances.size
+    var steps = totalSteps
 
     //for epoch e in 1..K
     for(n <- 0 until iterations) {
@@ -39,58 +40,51 @@ object Problem2 {
       //for instance (Xi, Ci) in the training set
       for (i <- instances) {
 
-        //find the current solution cHat <- argmax c P lambda(c|x)
-        val cHat = predict(i._1, lambda)
+        //find the current solution cHat <- argmax c P lambdaWeights(c|x)
+        val cHat = predict(i._1, lambdaWeights)
 
         //if cHat is not equal to Ci
-        if (cHat != i._2) {
+        if (cHat != i._2) { //if incorrect, UPDATE TOWARDS GOLD, AWAY FROM PREDICTION
 
           //f(Xi, Ci)
-          val default_vector = feat(i._1, i._2)
+          val featureGold = feat(i._1, i._2)
 
           //f(Xi, cHat)
-          val argmax_vector = feat(i._1, cHat)
+          val featurePrediction = feat(i._1, cHat)
 
           //for each key in feature vector f(Xi, Ci)
-          default_vector.keys.foreach { k =>
+          featureGold.keys.foreach { k =>
 
-            //lambda k = f(Xi, Ci)(k) * learningRate
-            lambda(k) += default_vector(k) * learningRate
+            //lambdaWeights k = f(Xi, Ci)(k) * learningRate
+            lambdaWeights(k) += featureGold(k) * learningRate
 
-            //average_lambda k = f(Xi, Ci)(k) * learningRate * count
-            average_lambda(k) += default_vector(k) * learningRate * c
+            //averageLambda k = f(Xi, Ci)(k) * learningRate * count
+            averageLambda(k) += featureGold(k) * learningRate * steps
 
           }
 
           //for each key in feature vector f(Xi, cHat)
-          argmax_vector.keys.foreach { k =>
+          featurePrediction.keys.foreach { k =>
 
-            //lambda(k) = f(Xi, cHat)(k) * learningRate
-            lambda(k) -= argmax_vector(k) * learningRate
+            //lambdaWeights(k) = f(Xi, cHat)(k) * learningRate
+            lambdaWeights(k) -= featurePrediction(k) * learningRate
 
-            //average_lambda(k) = f(Xi, cHat)(k) * learningRate * count
-            average_lambda(k) -= argmax_vector(k) * learningRate * c
+            //averageLambda(k) = f(Xi, cHat)(k) * learningRate * count
+            averageLambda(k) -= featurePrediction(k) * learningRate * steps
 
           }
 
         }
-
-        //increment c
-        c += 1
+        //go to next iteration step
+        steps -= 1
 
       }
 
     }
 
-    //for each key in average_lambda
-    average_lambda.keys.foreach( l =>
-      
-      //average_lambda(k) = lambda(l) - (average_lambda(l) / count)
-      average_lambda(l) = lambda(l) - (average_lambda(l) / c)
-    )
-
-    //return average_lambda
-    average_lambda
+    //weights average
+    averageLambda.mapValues(values => values / totalSteps)
+    averageLambda
 
   }
 
