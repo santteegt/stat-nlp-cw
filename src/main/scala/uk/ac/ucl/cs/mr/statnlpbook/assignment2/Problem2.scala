@@ -52,6 +52,9 @@ object Problem2 {
           //f(Xi, cHat)
           val featurePrediction = feat(i._1, cHat)
 
+          addInPlace(featureGold, lambdaWeights, learningRate)
+          addInPlace(featureGold, averageLambda, learningRate * steps)
+          /*
           //for each key in feature vector f(Xi, Ci)
           featureGold.keys.foreach { k =>
 
@@ -61,8 +64,11 @@ object Problem2 {
             //averageLambda k = f(Xi, Ci)(k) * learningRate * count
             averageLambda(k) += featureGold(k) * learningRate * steps
 
-          }
+          }*/
 
+          addInPlace(featurePrediction, lambdaWeights, -1*learningRate)
+          addInPlace(featurePrediction, averageLambda, -1*learningRate * steps)
+          /*
           //for each key in feature vector f(Xi, cHat)
           featurePrediction.keys.foreach { k =>
 
@@ -72,7 +78,7 @@ object Problem2 {
             //averageLambda(k) = f(Xi, cHat)(k) * learningRate * count
             averageLambda(k) -= featurePrediction(k) * learningRate * steps
 
-          }
+          }*/
 
         }
         //go to next iteration step
@@ -82,7 +88,7 @@ object Problem2 {
 
     }
 
-    //weights average
+    //average weights
     averageLambda.mapValues(values => values / totalSteps)
     averageLambda
 

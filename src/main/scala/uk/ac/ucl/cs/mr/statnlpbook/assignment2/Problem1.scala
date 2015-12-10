@@ -48,19 +48,29 @@ object Problem1 {
 
           //PERFORMING GRADIENT ASCENT ITERATION
 
+
+          //lambdaGradient updates due to the parameter is sent as reference
+          addInPlace(featureGold, lambdaGradient, learningRate)
+
+          /* decomposition of the evaluation to understand the operations made
           //for each key in feature vector f(Xi, Ci)
           featureGold.keys.foreach(k =>
 
             //lambdaGradient k += f(Xi, Ci)(k) * learningRate
-            lambdaGradient(k) += featureGold(k) * learningRate
-          )
 
+            lambdaGradient(k) += featureGold(k) * learningRate
+          )*/
+
+          //lambdaGradient updates due to the parameter is sent as reference
+          addInPlace(featurePrediction, lambdaGradient, -1*learningRate)
+
+          /* decomposition of the evaluation to understand the operations made
           //for each key in feature vector f(Xi, cHat)
           featurePrediction.keys.foreach(k =>
 
             //lambdaGradient(k) -= f(Xi, cHat)(k) * learningRate
             lambdaGradient(k) -= featurePrediction(k) * learningRate
-          )
+          )*/
 
         }
 
