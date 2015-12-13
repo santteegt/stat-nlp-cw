@@ -48,10 +48,8 @@ object Problem5{
     val argumentLabels = jointTrain.flatMap(_._2._2).toSet
 
     // define model
-    //TODO: change the features function to explore different types of features
-    //TODO: experiment with the unconstrained and constrained (you need to implement the inner search) models
-    val jointModel = JointUnconstrainedClassifier(triggerLabels,argumentLabels,Features.defaultTriggerFeatures,Features.defaultArgumentFeatures)
-    //val jointModel = JointConstrainedClassifier(triggerLabels,argumentLabels,Features.defaultTriggerFeatures,Features.defaultArgumentFeatures)
+    val jointModel = JointUnconstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
+    //val jointModel = JointConstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
 
     // use training algorithm to get weights of model
     val jointWeights = PrecompiledTrainers.trainPerceptron(jointTrain,jointModel.feat,jointModel.predict,2)
@@ -103,8 +101,31 @@ case class JointConstrainedClassifier(triggerLabels:Set[Label],
                                       argumentFeature:(Candidate,Label)=>FeatureVector
                                        ) extends JointModel {
   def predict(x: Candidate, weights: Weights) = {
-    //TODO
-    ???
+    def argmax(labels: Set[Label], x: Candidate, weights: Weights, feat:(Candidate,Label)=>FeatureVector) = {
+      val scores = labels.toSeq.map(y => y -> dot(feat(x, y), weights)).toMap withDefaultValue 0.0
+      scores.maxBy(_._2)._1
+    }
+
+    val bestTrigger = argmax(triggerLabels,x,weights,triggerFeature)
+
+    //A trigger can only have arguments if its own label is not NONE
+    if (bestTrigger == new Label("None")) {
+
+      val bestArguments = for (arg<-x.arguments) yield new Label("None")
+      (bestTrigger,bestArguments)
+
+    //Only regulation events can have CAUSE arguments
+    } else if (bestTrigger == new Label("Regulation")) {
+
+      ???
+
+    //A trigger with a label other than NONE must have at least one THEME
+    } else {
+
+      ???
+
+    }
+
   }
 
 }

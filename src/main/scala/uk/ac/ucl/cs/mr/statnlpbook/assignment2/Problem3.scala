@@ -12,7 +12,7 @@ object Problem3Triggers {
 
     // load train and dev data
     // read the specification of the method to load more/less data for debugging speedup
-    val (trainDocs, devDocs) = BioNLP.getTrainDevDocuments(train_dir, 0.8, 500)
+    val (trainDocs, devDocs) = BioNLP.getTrainDevDocuments(train_dir, 0.8, 1000)
     // load test
     val testDocs = BioNLP.getTestDocuments(test_dir)
     // make tuples (Candidate,Gold)
@@ -43,8 +43,7 @@ object Problem3Triggers {
 
     // use training algorithm to get weights of model
     //val triggerWeights = PrecompiledTrainers.trainNB(triggerTrain,triggerModel.feat)
-    //val triggerWeights = PrecompiledTrainers.trainPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 20)
-    val triggerWeights = PrecompiledTrainers.trainAvgPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 20, 1.0)
+    val triggerWeights = PrecompiledTrainers.trainPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 20)
 
     // get predictions on dev
     val (triggerDevPred, triggerDevGold) = triggerDev.map { case (trigger, gold) => (triggerModel.predict(trigger, triggerWeights), gold) }.unzip
@@ -71,7 +70,7 @@ object Problem3Arguments {
 
     // load train and dev data
     // read the specification of the method to load more/less data for debugging speedup
-    val (trainDocs, devDocs) = BioNLP.getTrainDevDocuments(train_dir,0.8,500)
+    val (trainDocs, devDocs) = BioNLP.getTrainDevDocuments(train_dir,0.8,1000)
     // load test
     val testDocs = BioNLP.getTestDocuments(test_dir)
     // make tuples (Candidate,Gold)
@@ -97,10 +96,10 @@ object Problem3Arguments {
     val argumentLabels = argumentTrain.map(_._2).toSet
 
     // define model
-    val argumentModel = SimpleClassifier(argumentLabels, Features.defaultArgumentFeatures)
+    val argumentModel = SimpleClassifier(argumentLabels, Features.myArgumentFeatures)
 
     //val argumentWeights = PrecompiledTrainers.trainNB(argumentTrain,argumentModel.feat)
-    val argumentWeights = PrecompiledTrainers.trainPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,2)
+    val argumentWeights = PrecompiledTrainers.trainPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,20)
 
     // get predictions on dev
     val (argumentDevPred, argumentDevGold) = argumentDev.map { case (arg, gold) => (argumentModel.predict(arg,argumentWeights), gold) }.unzip
