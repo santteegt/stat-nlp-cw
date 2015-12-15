@@ -100,7 +100,8 @@ object Problem3Arguments {
     val argumentModel = SimpleClassifier(argumentLabels, Features.myArgumentFeatures)
 
     //val argumentWeights = PrecompiledTrainers.trainNB(argumentTrain,argumentModel.feat)
-    val argumentWeights = PrecompiledTrainers.trainPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,20)
+    val argumentWeights = PrecompiledTrainers.trainPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,10)
+    //val argumentWeights = PrecompiledTrainers.trainAvgPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,10)
 
     // get predictions on dev
     val (argumentDevPred, argumentDevGold) = argumentDev.map { case (arg, gold) => (argumentModel.predict(arg,argumentWeights), gold) }.unzip
@@ -108,7 +109,7 @@ object Problem3Arguments {
     val argumentDevEval = Evaluation(argumentDevGold, argumentDevPred, Set("None"))
     println("Evaluation for argument classification:")
     println(argumentDevEval.toString)
-    
+
     ErrorAnalysis(argumentDev.unzip._1,argumentDevGold,argumentDevPred).showErrors(5)
 
     // get predictions on test
