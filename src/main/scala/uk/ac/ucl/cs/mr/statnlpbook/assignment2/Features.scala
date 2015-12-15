@@ -57,26 +57,33 @@ object Features {
 
     val token = thisSentence.tokens(begin) //first token of Trigger
 
-    val mentions = thisSentence.mentions
-    val leftMention = mentions.filter(m => m.begin <= begin)
-    val rightMention = mentions.filter(m => m.begin >= end)
-
     //features
     feats += FeatureKey("label bias", List(y)) -> 1.0 //bias feature
     feats += FeatureKey("first trigger word", List(token.word, y)) -> 1.0 //word feature
     feats += FeatureKey("first trigger pos", List(token.pos, y)) -> 1.0 //pos feature
     feats += FeatureKey("first trigger stem", List(token.stem, y)) -> 1.0 //stem feature
     feats += FeatureKey("first trigger size", List(token.word.length.toString, y)) -> 1.0 //first trigger size
-    feats += FeatureKey("first mention size", List(mentions.length.toString, y)) -> 1.0 //first mention size
 
+    //Changes by Sergiu
     if (begin > 0) {
+      val leftToken = thisSentence.tokens(begin-1)
+      //feats += FeatureKey("unigram on the left", List(leftToken.word, y)) -> 1.0 //unigram on the left
+      feats += FeatureKey("bigram on the left", List(leftToken.word, token.word, y)) -> 1.0 //bigram on the left
+    }
+
+    if (begin < thisSentence.tokens.length) {
+      val rightToken = thisSentence.tokens(begin+1)
+      //feats += FeatureKey("unigram on the right", List(rightToken.word, y)) -> 1.0 //unigram on the right
+      feats += FeatureKey("bigram on the right", List(token.word, rightToken.word, y)) -> 1.0 //bigram on the right
+    }
+
+    /*if (begin > 0) {
 
       if (token.word.contains("-") ||
-        token.word.startsWith("-") ||
         token.word.startsWith("over") ||
         token.word.startsWith("up") ||
         token.word.startsWith("down") ||
-        token.word.startsWith("co")) {
+        token.word.startsWith("ion")) {
         feats += FeatureKey("word contains/startswith", List(token.word, y)) -> 1.0 //word contains/starts with specific words or symbols
       }
 
@@ -108,23 +115,54 @@ object Features {
         feats += FeatureKey("None trigger Event TO", List(token.word, y)) -> 1.0 //left right pos on VBN
       }
     }
+    */
 
     //Changes by Santiago
     val tokenizer = token.word.split("-")
     for(segment <- tokenizer) {
-      val index_ = if(y.indexOf('_') > 0) y.indexOf('_') else 0;
+      val index_ = if(y.indexOf('_') > 0) y.indexOf('_') else 0
       val labelGold = y.substring(index_ + 1)
-      if (labelGold.toLowerCase().endsWith(segment)) {
+      if (labelGold.toLowerCase.endsWith(segment)) {
         feats += FeatureKey("trigger dictionary ends with", List(token.word, segment, y)) -> 1.0 //segment word stem as part of trigger dictionary
       }
     }
     //Changes by Santiago
     val tokenizerStem = token.stem.split("-")
     for(segment <- tokenizerStem) {
-      if (y.toLowerCase().startsWith(segment)) {
+      if (y.toLowerCase.startsWith(segment)) {
         feats += FeatureKey("trigger dictionary starts with", List(token.word, segment, y)) -> 1.0 //segment word stem as part of trigger dictionary
       }
     }
+
+    //Changes by Sergiu
+    val mentions = thisSentence.mentions
+    val leftMention = mentions.filter(m => m.begin <= begin)
+    val rightMention = mentions.filter(m => m.begin >= end)
+
+    feats += FeatureKey("first mention size", List(mentions.length.toString, y)) -> 1.0 //first mention size
+
+    if (leftMention.nonEmpty) {
+      val distanceLeft = (begin - leftMention.last.begin).toString
+      feats += FeatureKey("distance to left mention", List(distanceLeft, y)) -> 1.0 //distance to left mention feature
+    }
+
+    if (rightMention.nonEmpty) {
+      val distanceRight = (rightMention.head.begin - end).toString
+      feats += FeatureKey("distance to right mention", List(distanceRight, y)) -> 1.0 //distance to right mention feature
+    }
+
+    //Changes by Sergiu
+    val deps = thisSentence.deps
+    val depHead = deps.filter(dh => {dh.head == begin})
+    val depMod = deps.filter(dm => {dm.mod == begin})
+
+    depHead.foreach(dh => {
+      feats += FeatureKey("dep head", List(dh.label, y)) -> 1.0 //dep head
+    })
+
+    depMod.foreach(dm => {
+      feats += FeatureKey("dep mod", List(dm.label, y)) -> 1.0 //dep mod
+    })
 
 //    thisSentence.deps.filter(x => x.head == begin && token.pos.matches("^(V|N).*")).foreach(dep =>  {
 //      if(Set("nn","det","amod","prep_of","prep_in").contains(dep.label) && thisSentence.mentions.map(_.begin).contains(dep.mod)) {

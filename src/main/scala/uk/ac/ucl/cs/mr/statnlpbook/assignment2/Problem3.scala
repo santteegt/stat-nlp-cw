@@ -43,7 +43,8 @@ object Problem3Triggers {
 
     // use training algorithm to get weights of model
     //val triggerWeights = PrecompiledTrainers.trainNB(triggerTrain,triggerModel.feat)
-    val triggerWeights = PrecompiledTrainers.trainPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 20)
+    val triggerWeights = PrecompiledTrainers.trainPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 10)
+    //val triggerWeights = PrecompiledTrainers.trainAvgPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 10)
 
     // get predictions on dev
     val (triggerDevPred, triggerDevGold) = triggerDev.map { case (trigger, gold) => (triggerModel.predict(trigger, triggerWeights), gold) }.unzip
@@ -107,8 +108,7 @@ object Problem3Arguments {
     val argumentDevEval = Evaluation(argumentDevGold, argumentDevPred, Set("None"))
     println("Evaluation for argument classification:")
     println(argumentDevEval.toString)
-
-
+    
     ErrorAnalysis(argumentDev.unzip._1,argumentDevGold,argumentDevPred).showErrors(5)
 
     // get predictions on test

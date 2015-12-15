@@ -117,7 +117,8 @@ case class JointConstrainedClassifier(triggerLabels:Set[Label],
     //Only regulation events can have CAUSE arguments
     } else if (bestTrigger == new Label("Regulation")) {
 
-      ???
+      val bestArguments = for (arg<-x.arguments) yield new Label("Theme")
+      (bestTrigger,bestArguments)
 
     //A trigger with a label other than NONE must have at least one THEME
     } else {
