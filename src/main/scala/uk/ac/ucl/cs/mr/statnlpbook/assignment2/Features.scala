@@ -67,38 +67,7 @@ object Features {
     feats += FeatureKey("first trigger size", List(token.word.length.toString, y)) -> 1.0 //first trigger size feature
 
     //tokens
-    val tokensLength = thisSentence.tokens.length
-
-    if (begin > 0) {
-      for (i <- 0 until tokensLength) {
-
-        val leftToken = thisSentence.tokens(begin-1)
-        val rightToken = thisSentence.tokens(begin+1)
-
-        if (leftToken.pos == "NN" && token.pos.startsWith("N") && rightToken.pos == "IN") {
-          feats += FeatureKey("left right pos on NN", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on NN
-        }
-        if (!Set("NN").contains(leftToken.pos) && token.pos == "IN" && Set("DT","NN", "JJ").contains(rightToken.pos)) {
-          feats += FeatureKey("None trigger Event", List(token.word, y)) -> 1.0 //left right pos on VBN
-        }
-
-        if (token.pos.equals("VBD") && Set("TO").contains(rightToken.pos)) {
-          feats += FeatureKey("None trigger Event TO", List(token.word, y)) -> 1.0 //left right pos on VBN
-        }
-
-        //feats += FeatureKey("token unigram on the left", List(leftToken.word, y)) -> 1.0 //unigram on the left feature
-        feats += FeatureKey("token bigram on the left", List(leftToken.word, token.word, y)) -> 1.0 //bigram on the left feature
-        //feats += FeatureKey("token unigram on the right", List(rightToken.word, y)) -> 1.0 //unigram on the right feature
-        feats += FeatureKey("token bigram on the right", List(token.word, rightToken.word, y)) -> 1.0 //bigram on the right feature
-
-        if (token.word.startsWith("-") || token.word.contains("-")) {
-          feats += FeatureKey("token startswith/contains", List(token.word, rightToken.word, y)) -> 1.0 //token startswith/contains
-        }
-
-      }
-    }
-
-    /*if (begin > 0) {
+    if ((begin > 0) && (begin < thisSentence.tokens.length)) {
 
       val leftToken = thisSentence.tokens(begin-1)
       val rightToken = thisSentence.tokens(begin+1)
@@ -106,13 +75,6 @@ object Features {
       if (leftToken.pos == "NN" && token.pos.startsWith("N") && rightToken.pos == "IN") {
         feats += FeatureKey("left right pos on NN", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on NN
       }
-
-      /*
-      if (leftToken.pos == "JJ" && token.pos.startsWith("V") && rightToken.pos == "NN") {
-        feats += FeatureKey("left right pos on VBN", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on VBN
-      }
-      */
-
       if (!Set("NN").contains(leftToken.pos) && token.pos == "IN" && Set("DT","NN", "JJ").contains(rightToken.pos)) {
         feats += FeatureKey("None trigger Event", List(token.word, y)) -> 1.0 //left right pos on VBN
       }
@@ -120,22 +82,18 @@ object Features {
       if (token.pos.equals("VBD") && Set("TO").contains(rightToken.pos)) {
         feats += FeatureKey("None trigger Event TO", List(token.word, y)) -> 1.0 //left right pos on VBN
       }
-    }*/
 
-    /*if (begin > 0) {
-      val leftToken = thisSentence.tokens(begin-1)
-      //feats += FeatureKey("token bigram on the left", List(leftToken.word, token.word, y)) -> 1.0 //bigram on the left feature
-    }
-    */
-
-    /*
-    if (begin < thisSentence.tokens.length) {
-      val rightToken = thisSentence.tokens(begin+1)
+      //feats += FeatureKey("token unigram on the left", List(leftToken.word, y)) -> 1.0 //unigram on the left feature
+      feats += FeatureKey("token bigram on the left", List(leftToken.word, token.word, y)) -> 1.0 //bigram on the left feature
+      //feats += FeatureKey("token unigram on the right", List(rightToken.word, y)) -> 1.0 //unigram on the right feature
       feats += FeatureKey("token bigram on the right", List(token.word, rightToken.word, y)) -> 1.0 //bigram on the right feature
-    }
-    */
 
-    //Changes by Santiago
+      if (token.word.startsWith("-") || token.word.contains("-")) {
+        feats += FeatureKey("token startswith/contains", List(token.word, rightToken.word, y)) -> 1.0 //token startswith/contains
+      }
+
+    }
+
     val tokenizer = token.word.split("-")
     for(segment <- tokenizer) {
       val index_ = if(y.indexOf('_') > 0) y.indexOf('_') else 0
@@ -145,7 +103,6 @@ object Features {
       }
     }
 
-    //Changes by Santiago
     val tokenizerStem = token.stem.split("-")
     for(segment <- tokenizerStem) {
       if (y.toLowerCase.startsWith(segment)) {
