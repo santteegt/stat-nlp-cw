@@ -73,8 +73,13 @@ object Features {
       val rightToken = thisSentence.tokens(begin+1)
 
       if (leftToken.pos == "NN" && token.pos.startsWith("N") && rightToken.pos == "IN") {
-        feats += FeatureKey("left right pos on NN", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on NN
+        feats += FeatureKey("left right pos on Nouns", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on N*
       }
+
+      if (leftToken.pos == "JJ" && token.pos.startsWith("V") && rightToken.pos == "NN") {
+        feats += FeatureKey("left right pos on Verbs", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on V*
+      }
+
       if (!Set("NN").contains(leftToken.pos) && token.pos == "IN" && Set("DT","NN", "JJ").contains(rightToken.pos)) {
         feats += FeatureKey("None trigger Event", List(token.word, y)) -> 1.0 //left right pos on VBN
       }
