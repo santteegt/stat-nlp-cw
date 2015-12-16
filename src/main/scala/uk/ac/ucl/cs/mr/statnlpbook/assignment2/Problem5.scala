@@ -101,26 +101,47 @@ case class JointConstrainedClassifier(triggerLabels:Set[Label],
                                       argumentFeature:(Candidate,Label)=>FeatureVector
                                        ) extends JointModel {
   def predict(x: Candidate, weights: Weights) = {
-    def argmax(labels: Set[Label], x: Candidate, weights: Weights, feat:(Candidate,Label)=>FeatureVector) = {
+
+    var themeCount = 0
+    var causeCount = 0
+    var argMaxScore = Double.NegativeInfinity
+    var argMaxPos = 0
+
+    def argmax(pos: Int, labels: Set[Label], x: Candidate, weights: Weights, feat:(Candidate,Label)=>FeatureVector) = {
       val scores = labels.toSeq.map(y => y -> dot(feat(x, y), weights)).toMap withDefaultValue 0.0
-      scores.maxBy(_._2)._1
+      val argMax = scores.maxBy(_._2)
+      argMax._1 match {
+        case "Theme" => themeCount +=1
+        case "Cause" => causeCount +=1
+        case _ =>
+      }
+      if(argMax._2 > argMaxScore) {
+        argMaxScore = argMax._2
+        argMaxPos = pos
+      }
+      argMax._1
     }
 
-    val regulationTriggers = ".*[Rr]egulation".r
+//    val notNoneTrigger = ".*[Rr]egulation".r
+//    val notRegulationTriggers = "^(?!.*egulation)".r
+//    val regulationTriggers = "^(?!None).*$".r
 
-    def constraints(bestTrigger: Label):Seq[Label] = bestTrigger match {
-      //A trigger can only have arguments if its own label is not NONE
-      case "None" => for (arg<-x.arguments) yield new Label("None")
-      //Only regulation events can have CAUSE arguments
-      case regulationTriggers(_*) => for (arg<-x.arguments) yield new Label("Theme")
-      //A trigger with a label other than NONE must have at least one THEME
-      case _ => ???
+    val bestTrigger = argmax(0, triggerLabels,x,weights,triggerFeature)
+    argMaxScore = Double.NegativeInfinity
+    val bestArguments = for ((arg, i) <- x.arguments.zipWithIndex) yield argmax(i, argumentLabels, arg, weights, argumentFeature)
+
+    var bestConstrainedArguments = bestArguments
+
+    if(bestTrigger.equals("None")) { //None events cannot have arguments
+      bestConstrainedArguments = bestConstrainedArguments.map(x => new Label("None"))
+    } else if( !bestTrigger.matches(".*[Rr]egulation") ) { // Only events different than None can have at least one Theme
+      bestConstrainedArguments = bestConstrainedArguments.map(x => if(x.equals("Cause")) new Label("None") else x)
+    } else { //ONLY regulation events can have Cause arguments
+      if( bestConstrainedArguments.filter(_.equals("Theme")).size < 1 )
+        bestConstrainedArguments = bestConstrainedArguments.zipWithIndex.map{case (arg, pos) => if(pos == argMaxPos) new Label("Theme") else arg}
     }
 
-    val bestTrigger = argmax(triggerLabels,x,weights,triggerFeature)
-    val bestArguments = constraints(bestTrigger)
-
-    (bestTrigger, bestArguments)
+    (bestTrigger, bestConstrainedArguments)
 
   }
 
