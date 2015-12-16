@@ -48,8 +48,8 @@ object Problem5{
     val argumentLabels = jointTrain.flatMap(_._2._2).toSet
 
     // define model
-    val jointModel = JointUnconstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
-    //val jointModel = JointConstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
+    //val jointModel = JointUnconstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
+    val jointModel = JointConstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
 
     // use training algorithm to get weights of model
     val jointWeights = PrecompiledTrainers.trainPerceptron(jointTrain,jointModel.feat,jointModel.predict,2)
@@ -106,26 +106,21 @@ case class JointConstrainedClassifier(triggerLabels:Set[Label],
       scores.maxBy(_._2)._1
     }
 
-    val bestTrigger = argmax(triggerLabels,x,weights,triggerFeature)
+    val regulationTriggers = ".*[Rr]egulation".r
 
-    //A trigger can only have arguments if its own label is not NONE
-    if (bestTrigger == new Label("None")) {
-
-      val bestArguments = for (arg<-x.arguments) yield new Label("None")
-      (bestTrigger,bestArguments)
-
-    //Only regulation events can have CAUSE arguments
-    } else if (bestTrigger == new Label("Regulation")) {
-
-      val bestArguments = for (arg<-x.arguments) yield new Label("Theme")
-      (bestTrigger,bestArguments)
-
-    //A trigger with a label other than NONE must have at least one THEME
-    } else {
-
-      ???
-
+    def constraints(bestTrigger: Label):Seq[Label] = bestTrigger match {
+      //A trigger can only have arguments if its own label is not NONE
+      case "None" => for (arg<-x.arguments) yield new Label("None")
+      //Only regulation events can have CAUSE arguments
+      case regulationTriggers(_*) => for (arg<-x.arguments) yield new Label("Theme")
+      //A trigger with a label other than NONE must have at least one THEME
+      case _ => ???
     }
+
+    val bestTrigger = argmax(triggerLabels,x,weights,triggerFeature)
+    val bestArguments = constraints(bestTrigger)
+
+    (bestTrigger, bestArguments)
 
   }
 
