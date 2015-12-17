@@ -74,19 +74,19 @@ object Features {
       val rightToken = thisSentence.tokens(begin+1)
 
       if (leftToken.pos == "NN" && token.pos.startsWith("N") && rightToken.pos == "IN") {
-        feats += FeatureKey(prefix + "left right pos on Nouns", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on N*
+        feats += FeatureKey(prefix + "left right pos on nouns", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on nouns feature
       }
 
       if (leftToken.pos == "JJ" && token.pos.startsWith("V") && rightToken.pos == "NN") {
-        feats += FeatureKey(prefix + "left right pos on Verbs", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on V*
+        feats += FeatureKey(prefix + "left right pos on verbs", List(leftToken.pos, token.pos, rightToken.pos, y)) -> 1.0 //left right pos on verbs feature
       }
 
       if (!Set("NN").contains(leftToken.pos) && token.pos == "IN" && Set("DT","NN", "JJ").contains(rightToken.pos)) {
-        feats += FeatureKey(prefix + "None trigger Event", List(token.word, y)) -> 1.0 //left right pos on VBN
+        feats += FeatureKey(prefix + "none trigger event", List(token.word, y)) -> 1.0 //none trigger event feature
       }
 
       if (token.pos.equals("VBD") && Set("TO").contains(rightToken.pos)) {
-        feats += FeatureKey(prefix + "None trigger Event TO", List(token.word, y)) -> 1.0 //left right pos on VBN
+        feats += FeatureKey(prefix + "none trigger event to", List(token.word, y)) -> 1.0 //none trigger event to feature
       }
 
       //feats += FeatureKey("token unigram on the left", List(leftToken.word, y)) -> 1.0 //unigram on the left feature
@@ -95,7 +95,7 @@ object Features {
       feats += FeatureKey(prefix + "token bigram on the right", List(token.word, rightToken.word, y)) -> 1.0 //bigram on the right feature
 
       if (token.word.startsWith("-") || token.word.contains("-")) {
-        feats += FeatureKey(prefix + "token startswith/contains", List(token.word, rightToken.word, y)) -> 1.0 //token startswith/contains
+        feats += FeatureKey(prefix + "token startswith/contains", List(token.word, rightToken.word, y)) -> 1.0 //token startswith/contains feature
       }
 
     }
@@ -172,26 +172,26 @@ object Features {
 
     if (begin > 0) {
       val leftEvent = thisSentence.tokens(begin-1)
-      feats += FeatureKey(prefix + "begin event unigram on the left", List(leftEvent.word, y)) -> 1.0 //begin event unigram on the left feature
-      feats += FeatureKey(prefix + "begin event bigram on the left", List(leftEvent.word, eventHeadToken.word, y)) -> 1.0 //begin event bigram on the left feature
+      feats += FeatureKey(prefix + "unigram on the left using begin", List(leftEvent.word, y)) -> 1.0 //unigram on the left using begin feature
+      feats += FeatureKey(prefix + "bigram on the left using begin", List(leftEvent.word, eventHeadToken.word, y)) -> 1.0 //bigram on the left using begin feature
     }
 
     if (begin < thisSentence.tokens.length) {
       val rightEvent = thisSentence.tokens(begin+1)
-      feats += FeatureKey(prefix + "begin event unigram on the right", List(rightEvent.word, y)) -> 1.0 //begin event unigram on the right feature
-      feats += FeatureKey(prefix + "begin event bigram on the right", List(eventHeadToken.word, rightEvent.word, y)) -> 1.0 //begin event bigram on the right feature
+      feats += FeatureKey(prefix + "unigram on the right using begin", List(rightEvent.word, y)) -> 1.0 //unigram on the right using begin feature
+      feats += FeatureKey(prefix + "bigram on the right using begin", List(eventHeadToken.word, rightEvent.word, y)) -> 1.0 //bigram on the right using begin feature
     }
 
     if (event.begin > 0) {
       val leftEvent = thisSentence.tokens(event.begin-1)
-      feats += FeatureKey(prefix + "event begin event unigram on the left", List(leftEvent.word, y)) -> 1.0 //event begin event unigram on the left feature
-      feats += FeatureKey(prefix + "event begin event bigram on the left", List(leftEvent.word, eventHeadToken.word, y)) -> 1.0 //event begin event bigram on the left feature
+      feats += FeatureKey(prefix + "unigram on the left using event.begin", List(leftEvent.word, y)) -> 1.0 //unigram on the left using event.begin feature
+      feats += FeatureKey(prefix + "bigram on the left using event.begin", List(leftEvent.word, eventHeadToken.word, y)) -> 1.0 //bigram on the left using event.begin feature
     }
 
     if (event.begin < thisSentence.tokens.length) {
       val rightEvent = thisSentence.tokens(event.begin+1)
-      feats += FeatureKey(prefix + "event begin event unigram on the right", List(rightEvent.word, y)) -> 1.0 //event begin event unigram on the right feature
-      feats += FeatureKey(prefix + "event begin event bigram on the right", List(eventHeadToken.word, rightEvent.word, y)) -> 1.0 //event begin event bigram on the right feature
+      feats += FeatureKey(prefix + "unigram on the right using event.begin", List(rightEvent.word, y)) -> 1.0 //unigram on the right using event.begin feature
+      feats += FeatureKey(prefix + "bigram on the right using event.begin", List(eventHeadToken.word, rightEvent.word, y)) -> 1.0 //bigram on the right using event.begin feature
     }
 
     feats.toMap

@@ -16,7 +16,7 @@ object Problem5{
 
     // load train and dev data
     // read the specification of the method to load more/less data for debugging speedup
-    val (trainDocs, devDocs) = BioNLP.getTrainDevDocuments(train_dir,0.8,500)
+    val (trainDocs, devDocs) = BioNLP.getTrainDevDocuments(train_dir,0.8, 1000)
     // load test
     val testDocs = BioNLP.getTestDocuments(test_dir)
     // make tuples (Candidate,Gold)
@@ -52,7 +52,7 @@ object Problem5{
     val jointModel = JointConstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
 
     // use training algorithm to get weights of model
-    val jointWeights = PrecompiledTrainers.trainPerceptron(jointTrain,jointModel.feat,jointModel.predict,2)
+    val jointWeights = PrecompiledTrainers.trainPerceptron(jointTrain,jointModel.feat,jointModel.predict, 10)
 
     // get predictions on dev
     val jointDevPred = jointDev.unzip._1.map { case e => jointModel.predict(e,jointWeights) }
