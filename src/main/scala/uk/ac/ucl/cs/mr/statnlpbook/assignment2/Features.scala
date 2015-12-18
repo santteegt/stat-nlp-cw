@@ -48,7 +48,36 @@ object Features {
     feats.toMap
   }
 
-  def myTriggerFeatures(x: Candidate, y: Label): FeatureVector = {
+  def myNaiveBayesTriggerFeatures(x: Candidate, y: Label): FeatureVector = {
+    val prefix = "trigger::"
+    val doc = x.doc
+    val begin = x.begin
+    val end = x.end
+    val thisSentence = doc.sentences(x.sentenceIndex) //use this to gain access to the parent sentence
+    val feats = new mutable.HashMap[FeatureKey, Double]
+
+    val token = thisSentence.tokens(begin) //first token of Trigger
+
+    //features provided
+    feats += FeatureKey(prefix + "label bias", List(y)) -> 1.0 //bias feature
+    feats += FeatureKey(prefix + "first trigger word", List(token.word, y)) -> 1.0 //word feature
+
+    //features developed
+    val tokenizerStem = token.stem.split("-")
+    for(segment <- tokenizerStem) {
+      if (y.toLowerCase.startsWith(segment)) {
+        feats += FeatureKey(prefix + "trigger dictionary starts with", List(token.word, segment, y)) -> 1.0 //segment word stem as part of trigger dictionary feature
+      }
+    }
+
+    val mentions = thisSentence.mentions
+    feats += FeatureKey(prefix + "first mention size", List(mentions.length.toString, y)) -> 1.0 //first mention size feature
+
+    feats.toMap
+
+  }
+
+  def myPerceptronTriggerFeatures(x: Candidate, y: Label): FeatureVector = {
     val prefix = "trigger::"
     val doc = x.doc
     val begin = x.begin
@@ -149,7 +178,27 @@ object Features {
     feats.toMap
   }
 
-  def myArgumentFeatures(x: Candidate, y: Label): FeatureVector = {
+  def myNaiveBayesArgumentFeatures(x: Candidate, y: Label): FeatureVector = {
+    val prefix = "arg::"
+    val doc = x.doc
+    val begin = x.begin
+    val end = x.end
+    val thisSentence = doc.sentences(x.sentenceIndex)
+    val event = thisSentence.events(x.parentIndex) //use this to gain access to the parent event
+    val eventHeadToken = thisSentence.tokens(event.begin) //first token of event
+    val feats = new mutable.HashMap[FeatureKey,Double]
+    val token = thisSentence.tokens(begin) //first word of argument
+
+    //features provided
+    feats += FeatureKey(prefix + "label bias", List(y)) -> 1.0 //label bias feature
+    feats += FeatureKey(prefix + "first argument word", List(token.word, y)) -> 1.0 //first argument word feature
+    feats += FeatureKey(prefix + "is protein_first trigger word", List(x.isProtein.toString,eventHeadToken.word, y)) -> 1.0 //is protein_first trigger word feature
+
+    feats.toMap
+
+  }
+
+  def myPerceptronArgumentFeatures(x: Candidate, y: Label): FeatureVector = {
     val prefix = "arg::"
     val doc = x.doc
     val begin = x.begin
@@ -193,6 +242,22 @@ object Features {
       feats += FeatureKey(prefix + "unigram on the right using event.begin", List(rightEvent.word, y)) -> 1.0 //unigram on the right using event.begin feature
       feats += FeatureKey(prefix + "bigram on the right using event.begin", List(eventHeadToken.word, rightEvent.word, y)) -> 1.0 //bigram on the right using event.begin feature
     }
+
+    val distance = (begin - event.begin).toString
+    feats += FeatureKey(prefix + "distance between begin and event.begin", List(distance, y)) -> 1.0 //distance between begin and event.begin feature
+
+    //deps
+    val deps = thisSentence.deps
+    val depHead = deps.filter(dh => {dh.head == begin})
+    val depMod = deps.filter(dm => {dm.mod == begin})
+
+    depHead.foreach(dh => {
+      feats += FeatureKey(prefix + "dep head", List(dh.label, y)) -> 1.0 //dep head feature
+    })
+
+    depMod.foreach(dm => {
+      feats += FeatureKey(prefix + "dep mod", List(dm.label, y)) -> 1.0 //dep mod feature
+    })
 
     feats.toMap
 
