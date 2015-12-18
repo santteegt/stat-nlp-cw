@@ -98,8 +98,8 @@ object Problem3Arguments {
     val argumentLabels = argumentTrain.map(_._2).toSet
 
     // define model
-    //val argumentModel = SimpleClassifier(argumentLabels, Features.myNaiveBayesArgumentFeatures)
-    val argumentModel = SimpleClassifier(argumentLabels, Features.myPerceptronArgumentFeatures)
+    val argumentModel = SimpleClassifier(argumentLabels, Features.myNaiveBayesArgumentFeatures)
+    //val argumentModel = SimpleClassifier(argumentLabels, Features.myPerceptronArgumentFeatures)
 
     //val argumentWeights = PrecompiledTrainers.trainNB(argumentTrain,argumentModel.feat)
     val argumentWeights = PrecompiledTrainers.trainPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,10)

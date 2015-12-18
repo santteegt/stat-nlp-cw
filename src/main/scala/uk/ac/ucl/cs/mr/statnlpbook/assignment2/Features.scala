@@ -194,6 +194,9 @@ object Features {
     feats += FeatureKey(prefix + "first argument word", List(token.word, y)) -> 1.0 //first argument word feature
     feats += FeatureKey(prefix + "is protein_first trigger word", List(x.isProtein.toString,eventHeadToken.word, y)) -> 1.0 //is protein_first trigger word feature
 
+    feats += FeatureKey(prefix + "first token of event word", List(eventHeadToken.word, y)) -> 1.0 //first token of event word feature
+    feats += FeatureKey(prefix + "is protein_first", List(x.isProtein.toString, y)) -> 1.0 //is protein_first feature
+
     feats.toMap
 
   }
