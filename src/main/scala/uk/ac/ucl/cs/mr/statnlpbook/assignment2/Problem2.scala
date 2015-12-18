@@ -29,7 +29,7 @@ object Problem2 {
     val lambdaWeights = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
 
     //Initialize average weights lambdaWeights
-    val averageLambda = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
+    val averageLambdaGradient = new mutable.HashMap[FeatureKey, Double].withDefaultValue(0.0)
 
     val totalSteps = iterations * instances.size
     var steps = totalSteps
@@ -53,7 +53,7 @@ object Problem2 {
           val featurePrediction = feat(i._1, cHat)
 
           addInPlace(featureGold, lambdaWeights, learningRate)
-          addInPlace(featureGold, averageLambda, learningRate * steps)
+          addInPlace(featureGold, averageLambdaGradient, learningRate * steps)
           /*
           //for each key in feature vector f(Xi, Ci)
           featureGold.keys.foreach { k =>
@@ -67,7 +67,7 @@ object Problem2 {
           }*/
 
           addInPlace(featurePrediction, lambdaWeights, -1*learningRate)
-          addInPlace(featurePrediction, averageLambda, -1*learningRate * steps)
+          addInPlace(featurePrediction, averageLambdaGradient, -1*learningRate * steps)
           /*
           //for each key in feature vector f(Xi, cHat)
           featurePrediction.keys.foreach { k =>
@@ -89,8 +89,8 @@ object Problem2 {
     }
 
     //average weights
-    averageLambda.mapValues(values => values / totalSteps)
-    averageLambda
+    averageLambdaGradient.mapValues(values => values / totalSteps)
+    averageLambdaGradient
 
   }
 
