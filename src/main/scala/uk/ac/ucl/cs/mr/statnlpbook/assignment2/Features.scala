@@ -211,13 +211,13 @@ object Features {
     val depMod = deps.filter(dm => {dm.mod == begin})
 
     depHead.foreach(dh => {
-      val mentions = thisSentence.mentions.filter(_.begin == dh.mod);
-      feats += FeatureKey(prefix + "Dep to Protein", List(dh.label, mentions.size.toString, y)) -> 1.0 //dep head feature
+      val mentions = thisSentence.mentions.filter(_.begin == dh.head)
+      feats += FeatureKey(prefix + "dep head to protein", List(dh.label, mentions.size.toString, y)) -> 1.0 //dep head to protein feature
     })
 
     depMod.foreach(dm => {
-      val mentions = thisSentence.mentions.filter(_.begin == dm.head);
-      feats += FeatureKey(prefix + "Dep to Protein", List(dm.label, mentions.size.toString, y)) -> 1.0 //dep head feature
+      val mentions = thisSentence.mentions.filter(_.begin == dm.mod)
+      feats += FeatureKey(prefix + "dep mod to protein", List(dm.label, mentions.size.toString, y)) -> 1.0 //dep mod to protein feature
     })
 
     feats.toMap
