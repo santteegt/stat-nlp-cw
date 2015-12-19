@@ -206,6 +206,20 @@ object Features {
     val distance = (begin - event.begin).toString
     feats += FeatureKey(prefix + "distance between begin and event.begin", List(distance, y)) -> 1.0 //distance between begin and event.begin feature
 
+    val deps = thisSentence.deps
+    val depHead = deps.filter(dh => {dh.head == begin})
+    val depMod = deps.filter(dm => {dm.mod == begin})
+
+    depHead.foreach(dh => {
+      val mentions = thisSentence.mentions.filter(_.begin == dh.mod);
+      feats += FeatureKey(prefix + "Dep to Protein", List(dh.label, mentions.size.toString, y)) -> 1.0 //dep head feature
+    })
+
+    depMod.foreach(dm => {
+      val mentions = thisSentence.mentions.filter(_.begin == dm.head);
+      feats += FeatureKey(prefix + "Dep to Protein", List(dm.label, mentions.size.toString, y)) -> 1.0 //dep head feature
+    })
+
     feats.toMap
 
   }
