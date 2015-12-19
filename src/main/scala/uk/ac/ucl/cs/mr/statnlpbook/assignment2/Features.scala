@@ -191,11 +191,20 @@ object Features {
 
     //features provided
     feats += FeatureKey(prefix + "label bias", List(y)) -> 1.0 //label bias feature
-    feats += FeatureKey(prefix + "first argument word", List(token.word, y)) -> 1.0 //first argument word feature
     feats += FeatureKey(prefix + "is protein_first trigger word", List(x.isProtein.toString,eventHeadToken.word, y)) -> 1.0 //is protein_first trigger word feature
 
-    feats += FeatureKey(prefix + "first token of event word", List(eventHeadToken.word, y)) -> 1.0 //first token of event word feature
-    feats += FeatureKey(prefix + "is protein_first", List(x.isProtein.toString, y)) -> 1.0 //is protein_first feature
+    //features developed
+    if (!x.isProtein) {
+      feats += FeatureKey(prefix + "first argument pos", List(token.pos, y)) -> 1.0 //first argument pos feature
+    }
+
+    feats += FeatureKey(prefix + "first token of event pos", List(eventHeadToken.pos, y)) -> 1.0 //first token of event pos feature
+
+    val mentions = thisSentence.mentions
+    feats += FeatureKey(prefix + "first mention size", List(mentions.length.toString, y)) -> 1.0 //first mention size feature
+
+    val distance = (begin - event.begin).toString
+    feats += FeatureKey(prefix + "distance between begin and event.begin", List(distance, y)) -> 1.0 //distance between begin and event.begin feature
 
     feats.toMap
 
@@ -253,7 +262,7 @@ object Features {
     val depHead = deps.filter(dh => {dh.head == begin})
     val depMod = deps.filter(dm => {dm.mod == begin})
 
-    if(depHead.size == 0 || depMod.size == 0) {
+    if(depHead.isEmpty || depMod.isEmpty) {
       feats += FeatureKey(prefix + "None coming/going arguments due to No dependencies", List("ZeroDeps", y)) -> 1.0 //No related dependencies with Candidate
     }
 
