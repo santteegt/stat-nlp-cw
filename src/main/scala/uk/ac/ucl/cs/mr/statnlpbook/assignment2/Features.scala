@@ -219,7 +219,6 @@ object Features {
 
     //features developed
     feats += FeatureKey(prefix + "first token of event pos", List(eventHeadToken.pos, y)) -> 1.0 //first token of event pos feature
-    feats += FeatureKey(prefix + "first token of event stem", List(eventHeadToken.stem, y)) -> 1.0 //first token of event stem feature
     feats += FeatureKey(prefix + "is protein_first", List(x.isProtein.toString, y)) -> 1.0 //is protein_first feature
 
     if (begin > 0) {
@@ -255,7 +254,7 @@ object Features {
     val depMod = deps.filter(dm => {dm.mod == begin})
 
     if(depHead.size == 0 || depMod.size == 0) {
-      feats += FeatureKey(prefix + "None argument due to No dependencies", List("ZeroDeps", y)) -> 1.0 //No related dependencies with Candidate
+      feats += FeatureKey(prefix + "None coming/going arguments due to No dependencies", List("ZeroDeps", y)) -> 1.0 //No related dependencies with Candidate
     }
 
     depHead.foreach(dh => {
