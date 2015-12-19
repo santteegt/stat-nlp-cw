@@ -254,6 +254,10 @@ object Features {
     val depHead = deps.filter(dh => {dh.head == begin})
     val depMod = deps.filter(dm => {dm.mod == begin})
 
+    if(depHead.size == 0 || depMod.size == 0) {
+      feats += FeatureKey(prefix + "None argument due to No dependencies", List("ZeroDeps", y)) -> 1.0 //No related dependencies with Candidate
+    }
+
     depHead.foreach(dh => {
       feats += FeatureKey(prefix + "dep head", List(dh.label, y)) -> 1.0 //dep head feature
     })
