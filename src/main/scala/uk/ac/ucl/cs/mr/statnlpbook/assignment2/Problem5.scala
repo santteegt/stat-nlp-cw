@@ -102,19 +102,12 @@ case class JointConstrainedClassifier(triggerLabels:Set[Label],
                                        ) extends JointModel {
   def predict(x: Candidate, weights: Weights) = {
 
-    var themeCount = 0
-    var causeCount = 0
     var argMaxScore = Double.NegativeInfinity
     var argMaxPos = 0
 
     def argmax(pos: Int, labels: Set[Label], x: Candidate, weights: Weights, feat:(Candidate,Label)=>FeatureVector) = {
       val scores = labels.toSeq.map(y => y -> dot(feat(x, y), weights)).toMap withDefaultValue 0.0
       val argMax = scores.maxBy(_._2)
-      argMax._1 match {
-        case "Theme" => themeCount +=1
-        case "Cause" => causeCount +=1
-        case _ =>
-      }
       if(argMax._2 > argMaxScore) {
         argMaxScore = argMax._2
         argMaxPos = pos
@@ -134,9 +127,9 @@ case class JointConstrainedClassifier(triggerLabels:Set[Label],
 
     if(bestTrigger.equals("None")) { //None events cannot have arguments
       bestConstrainedArguments = bestConstrainedArguments.map(x => new Label("None"))
-    } else if( !bestTrigger.matches(".*[Rr]egulation") ) { // Only events different than None can have at least one Theme
+    } else if( !bestTrigger.matches(".*[Rr]egulation") ) { //ONLY regulation events can have Cause arguments
       bestConstrainedArguments = bestConstrainedArguments.map(x => if(x.equals("Cause")) new Label("None") else x)
-    } else { //ONLY regulation events can have Cause arguments
+    } else { // Only events different than None can have at least one Theme
       if( bestConstrainedArguments.filter(_.equals("Theme")).size < 1 )
         bestConstrainedArguments = bestConstrainedArguments.zipWithIndex.map{case (arg, pos) => if(pos == argMaxPos) new Label("Theme") else arg}
     }
