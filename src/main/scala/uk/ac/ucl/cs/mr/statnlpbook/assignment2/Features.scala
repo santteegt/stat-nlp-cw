@@ -71,7 +71,7 @@ object Features {
     }
 
     val mentions = thisSentence.mentions
-    feats += FeatureKey(prefix + "first mention size", List(mentions.length.toString, y)) -> 1.0 //first mention size feature
+    feats += FeatureKey(prefix + "first mention length", List(mentions.length.toString, y)) -> 1.0 //first mention length feature
 
     feats.toMap
 
@@ -94,7 +94,7 @@ object Features {
     //features developed
     feats += FeatureKey(prefix + "first trigger pos", List(token.pos, y)) -> 1.0 //pos feature
     feats += FeatureKey(prefix + "first trigger stem", List(token.stem, y)) -> 1.0 //stem feature
-    feats += FeatureKey(prefix + "first trigger size", List(token.word.length.toString, y)) -> 1.0 //first trigger size feature
+    feats += FeatureKey(prefix + "first trigger length", List(token.word.length.toString, y)) -> 1.0 //first trigger length feature
 
     //tokens
     if ((begin > 0) && (begin < thisSentence.tokens.length)) {
@@ -129,6 +129,13 @@ object Features {
 
     }
 
+    val tokenizerStem = token.stem.split("-")
+    for(segment <- tokenizerStem) {
+      if (y.toLowerCase.startsWith(segment)) {
+        feats += FeatureKey(prefix + "trigger dictionary starts with", List(token.word, segment, y)) -> 1.0 //segment word stem as part of trigger dictionary feature
+      }
+    }
+
     val tokenizer = token.word.split("-")
     for(segment <- tokenizer) {
       val index_ = if(y.indexOf('_') > 0) y.indexOf('_') else 0
@@ -138,19 +145,12 @@ object Features {
       }
     }
 
-    val tokenizerStem = token.stem.split("-")
-    for(segment <- tokenizerStem) {
-      if (y.toLowerCase.startsWith(segment)) {
-        feats += FeatureKey(prefix + "trigger dictionary starts with", List(token.word, segment, y)) -> 1.0 //segment word stem as part of trigger dictionary feature
-      }
-    }
-
     //mentions
     val mentions = thisSentence.mentions
     val leftMention = mentions.filter(m => m.begin <= begin)
     val rightMention = mentions.filter(m => m.begin >= end)
 
-    feats += FeatureKey(prefix + "first mention size", List(mentions.length.toString, y)) -> 1.0 //first mention size feature
+    feats += FeatureKey(prefix + "first mention length", List(mentions.length.toString, y)) -> 1.0 //first mention length feature
 
     if (leftMention.nonEmpty) {
       val distanceLeft = (begin - leftMention.last.begin).toString
@@ -201,7 +201,7 @@ object Features {
     feats += FeatureKey(prefix + "first token of event pos", List(eventHeadToken.pos, y)) -> 1.0 //first token of event pos feature
 
     val mentions = thisSentence.mentions
-    feats += FeatureKey(prefix + "first mention size", List(mentions.length.toString, y)) -> 1.0 //first mention size feature
+    feats += FeatureKey(prefix + "first mention length", List(mentions.length.toString, y)) -> 1.0 //first mention length feature
 
     val distance = (begin - event.begin).toString
     feats += FeatureKey(prefix + "distance between begin and event.begin", List(distance, y)) -> 1.0 //distance between begin and event.begin feature
@@ -212,12 +212,12 @@ object Features {
 
     depHead.foreach(dh => {
       val mentions = thisSentence.mentions.filter(_.begin == dh.head)
-      feats += FeatureKey(prefix + "dep head to protein", List(dh.label, mentions.size.toString, y)) -> 1.0 //dep head to protein feature
+      feats += FeatureKey(prefix + "dep head to protein", List(dh.label, mentions.length.toString, y)) -> 1.0 //dep head to protein feature
     })
 
     depMod.foreach(dm => {
       val mentions = thisSentence.mentions.filter(_.begin == dm.mod)
-      feats += FeatureKey(prefix + "dep mod to protein", List(dm.label, mentions.size.toString, y)) -> 1.0 //dep mod to protein feature
+      feats += FeatureKey(prefix + "dep mod to protein", List(dm.label, mentions.length.toString, y)) -> 1.0 //dep mod to protein feature
     })
 
     feats.toMap
