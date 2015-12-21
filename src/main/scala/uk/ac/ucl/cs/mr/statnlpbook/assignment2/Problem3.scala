@@ -39,13 +39,12 @@ object Problem3Triggers {
     val triggerLabels = triggerTrain.map(_._2).toSet
 
     // define model
-    val triggerModel = SimpleClassifier(triggerLabels, Features.myNaiveBayesTriggerFeatures)
-    //val triggerModel = SimpleClassifier(triggerLabels, Features.myPerceptronTriggerFeatures)
+    //val triggerModel = SimpleClassifier(triggerLabels, Features.myNaiveBayesTriggerFeatures)
+    val triggerModel = SimpleClassifier(triggerLabels, Features.myPerceptronTriggerFeatures)
 
     // use training algorithm to get weights of model
-    val triggerWeights = PrecompiledTrainers.trainNB(triggerTrain,triggerModel.feat)
-    //val triggerWeights = PrecompiledTrainers.trainPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 10)
-    //val triggerWeights = PrecompiledTrainers.trainAvgPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 10)
+    //val triggerWeights = PrecompiledTrainers.trainNB(triggerTrain,triggerModel.feat)
+    val triggerWeights = PrecompiledTrainers.trainPerceptron(triggerTrain, triggerModel.feat, triggerModel.predict, 10)
 
     // get predictions on dev
     val (triggerDevPred, triggerDevGold) = triggerDev.map { case (trigger, gold) => (triggerModel.predict(trigger, triggerWeights), gold) }.unzip
@@ -98,12 +97,11 @@ object Problem3Arguments {
     val argumentLabels = argumentTrain.map(_._2).toSet
 
     // define model
-    val argumentModel = SimpleClassifier(argumentLabels, Features.myNaiveBayesArgumentFeatures)
-    //val argumentModel = SimpleClassifier(argumentLabels, Features.myPerceptronArgumentFeatures)
+    //val argumentModel = SimpleClassifier(argumentLabels, Features.myNaiveBayesArgumentFeatures)
+    val argumentModel = SimpleClassifier(argumentLabels, Features.myPerceptronArgumentFeatures)
 
     //val argumentWeights = PrecompiledTrainers.trainNB(argumentTrain,argumentModel.feat)
     val argumentWeights = PrecompiledTrainers.trainPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,10)
-    //val argumentWeights = PrecompiledTrainers.trainAvgPerceptron(argumentTrain,argumentModel.feat,argumentModel.predict,10)
 
     // get predictions on dev
     val (argumentDevPred, argumentDevGold) = argumentDev.map { case (arg, gold) => (argumentModel.predict(arg,argumentWeights), gold) }.unzip
