@@ -48,7 +48,7 @@ object Problem5{
     val argumentLabels = jointTrain.flatMap(_._2._2).toSet
 
     // define model
-    //val jointModel = JointUnconstrainedClassifier(triggerLabels,argumentLabels,Features.myTriggerFeatures,Features.myArgumentFeatures)
+    //val jointModel = JointUnconstrainedClassifier(triggerLabels,argumentLabels,Features.myPerceptronTriggerFeatures,Features.myPerceptronArgumentFeatures)
     val jointModel = JointConstrainedClassifier(triggerLabels,argumentLabels,Features.myPerceptronTriggerFeatures,Features.myPerceptronArgumentFeatures)
 
     // use training algorithm to get weights of model
