@@ -6,6 +6,7 @@ object BuildSettings {
   val buildOrganization = "uk.ac.ucl.cs.mr"
   val buildScalaVersion = "2.11.4"
 
+
   val buildSettings = Defaults.defaultSettings ++ Seq(
     organization := buildOrganization,
     scalaVersion := buildScalaVersion,
@@ -17,7 +18,17 @@ object BuildSettings {
       "org.scala-lang.modules" %% "scala-pickling" % "0.10.0",
       "ml.wolfe" %% "wolfe-core" % "0.6.0",
       "ml.wolfe" %% "wolfe-ui" % "0.6.0",
-      "ml.wolfe" %% "wolfe-nlp" % "0.6.0"),
+      "ml.wolfe" %% "wolfe-nlp" % "0.6.0",
+      "org.scalanlp" %% "breeze" % "0.11.2",
+      // native libraries are not included by default. add this if you want them (as of 0.7)
+      // native libraries greatly improve performance, but increase jar sizes.
+      // It also packages various blas implementations, which have licenses that may or may not
+      // be compatible with the Apache License. No GPL code, as best I know.
+      "org.scalanlp" %% "breeze-natives" % "0.11.2",
+      //"com.github.tototoshi" %% "scala-csv" % "1.3.0-SNAPSHOT",
+      "com.github.tototoshi" %% "scala-csv" % "1.2.1",
+      "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+    ),
 
 
   //shellPrompt := ShellPrompt.buildShellPrompt,
