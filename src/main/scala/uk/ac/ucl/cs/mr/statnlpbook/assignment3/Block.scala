@@ -149,7 +149,7 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
  */
 case class Sum(args: Seq[Block[Vector]]) extends Block[Vector] {
   def forward(): Vector = { //todo: ???
-    output = Vector.zeros[Double](args.head.output.activeSize)
+    output = Vector.zeros[Double](args.head.forward().activeSize)
     args.foreach(x => output :+= x.forward())
     output
   }
@@ -229,8 +229,8 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
     val losses = args.map(arg => {
       val in = arg.forward()
       in match {
-        case v: Vector => (strength/2)*scala.math.pow( breeze.linalg.sum(v) , 2) //todo: ???
-        case w: Matrix => ??? //todo: ??? w.toDenseVector
+        case v: Vector => (strength/2)*scala.math.pow( breeze.linalg.norm(v) , 2) //todo: ???
+        case w: Matrix => (strength/2)*scala.math.pow( breeze.linalg.norm(w.toDenseVector) , 2) //todo: ??? w.toDenseVector
       }
     })
     output = losses.sum//todo: ??? //sums the losses up
@@ -239,9 +239,9 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
   def update(learningRate: Double): Unit = args.map(_.update(learningRate)) //todo: ???
   //loss functions are root nodes so they don't have upstream gradients
   def backward(gradient: Double): Unit = backward()
-  def backward(): Unit = args.foreach(x => x.backward((x.forward() match {
+  def backward(): Unit = args.foreach(x => x.backward((x.forward() match { //todo: ???
     case v: Vector => strength * v
-    case w: Matrix => ???
+    case w: Matrix => strength * w.toDenseVector
   }).asInstanceOf[P]))
 }
 
