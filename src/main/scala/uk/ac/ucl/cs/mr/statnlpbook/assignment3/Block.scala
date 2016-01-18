@@ -258,12 +258,28 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
  * @param clip defines range in which gradients are clipped, i.e., (-clip, clip)
  */
 case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamBlock[Matrix] with GaussianDefaultInitialization {
-  var param: Matrix = ???
-  val gradParam: Matrix = ???
-  def forward(): Matrix = ???
-  def backward(gradient: Matrix): Unit = ???
-  def resetGradient(): Unit = ???
-  def update(learningRate: Double): Unit = ???
+
+  var param: Matrix = initialize(defaultInitialization)
+  val gradParam: Matrix = Matrix.zeros[Double](dim1, dim2)
+
+  def forward(): Matrix = {
+    output = param
+    param
+  }
+
+  def backward(gradient: Matrix): Unit = {
+    gradParam :+= gradient
+  }
+
+  def resetGradient(): Unit = {
+    gradParam :*= Vector.zeros[Double](gradParam.activeSize)
+  }
+
+  def update(learningRate: Double): Unit = {
+    param :-= (breeze.linalg.clip(gradParam, -clip, clip) * learningRate)
+    resetGradient()
+  }
+
   def initialize(dist: () => Double): Matrix = {
     param = randMat(dim1, dim2, dist)
     param
@@ -276,19 +292,39 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
  * @param arg2 the right block evaluation to a vector
  */
 case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
+
   def forward(): Vector = ???
-  def backward(gradient: Vector): Unit = ???
-  def update(learningRate: Double): Unit = ???
+
+  //output = arg1.forward() dot arg2.forward()
+  //output
+
+  def backward(gradient: Vector): Unit = {
+    arg1.backward(gradient * arg2.output)
+  }
+
+  def update(learningRate: Double): Unit = {
+    arg1.update(learningRate)
+    arg2.update(learningRate)
+  }
+
 }
 
 /**
- * A block rerpesenting the element-wise application of the tanh function to a vector
+ * A block representing the element-wise application of the tanh function to a vector
  * @param arg a block evaluating to a vector
  */
 case class Tanh(arg: Block[Vector]) extends Block[Vector] {
-  def forward(): Vector = ???
-  def backward(gradient: Vector): Unit = ???
-  def update(learningRate: Double): Unit = ???
+
+  def forward(): Vector = {
+    output = breeze.numerics.tanh(arg)
+    output
+  }
+
+  def backward(gradient: Vector): Unit = arg.backward(gradient)
+
+  def update(learningRate: Double): Unit = {
+    arg.update(learningRate)
+  }
 }
 
 
