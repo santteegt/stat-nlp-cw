@@ -104,21 +104,26 @@ class LossSum(override val args: Loss*) extends DoubleSum(args:_*) with Loss {
  * @param clip defines range in which gradients are clipped, i.e., (-clip, clip)
  */
 case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector] with GaussianDefaultInitialization {
-  var param: Vector = ??? //todo: initialize using default initialization
-  val gradParam: Vector = ??? //todo: initialize with zeros
+  var param: Vector = initialize(defaultInitialization) //todo: initialize using default initialization
+  val gradParam: Vector = Vector.zeros[Double](dim) //todo: initialize with zeros
   /**
    * @return the current value of the vector parameter and caches it into output
    */
-  def forward(): Vector = ???
+  def forward(): Vector = {
+    output = param
+    output
+  }
   /**
    * Accumulates the gradient in gradParam
    * @param gradient an upstream gradient
    */
-  def backward(gradient: Vector): Unit = ???
+  def backward(gradient: Vector): Unit = gradParam :+= gradient
   /**
    * Resets gradParam to zero
    */
-  def resetGradient(): Unit = ???
+  def resetGradient(): Unit = { //todo:
+    gradParam :*= Vector.zeros[Double](gradParam.activeSize)
+  }
   /**
    * Updates param using the accumulated gradient. Clips the gradient to the interval (-clip, clip) before the update
    * @param learningRate learning rate used for the update
@@ -143,9 +148,13 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
  * @param args a sequence of blocks that evaluate to vectors
  */
 case class Sum(args: Seq[Block[Vector]]) extends Block[Vector] {
-  def forward(): Vector = ???
-  def backward(gradient: Vector): Unit = ???
-  def update(learningRate: Double): Unit = ???
+  def forward(): Vector = { //todo: ???
+    output = Vector.zeros[Double](args.head.output.activeSize)
+    args.foreach(x => output :+= x.forward())
+    output
+  }
+  def backward(gradient: Vector): Unit = args.foreach(_.backward(gradient)) //todo: ???
+  def update(learningRate: Double): Unit = args.foreach(_.update(learningRate)) //todo: ???
 }
 
 /**
@@ -154,9 +163,19 @@ case class Sum(args: Seq[Block[Vector]]) extends Block[Vector] {
  * @param arg2 right block that evaluates to a vector
  */
 case class Dot(arg1: Block[Vector], arg2: Block[Vector]) extends Block[Double] {
-  def forward(): Double = ???
-  def backward(gradient: Double): Unit = ???
-  def update(learningRate: Double): Unit = ???
+  def forward(): Double = { //todo: ???
+    output = arg1.forward() dot arg2.forward()
+    output
+  }
+  def backward(gradient: Double): Unit = {
+    //val upstreamGradientVector = Vector.ones[Double](arg1.output.activeSize) * gradient
+    arg1.backward( gradient * arg2.output ) //todo: ???
+    arg2.backward( gradient * arg1.output )
+  }
+  def update(learningRate: Double): Unit = {  //todo: ???
+    arg1.update(learningRate)
+    arg2.update(learningRate)
+  }
 }
 
 /**
@@ -164,9 +183,18 @@ case class Dot(arg1: Block[Vector], arg2: Block[Vector]) extends Block[Double] {
  * @param arg a block that evaluates to a double
  */
 case class Sigmoid(arg: Block[Double]) extends Block[Double] {
-  def forward(): Double = ???
-  def backward(gradient: Double): Unit = ???
-  def update(learningRate: Double): Unit = ???
+
+  def forward(): Double = { //todo: ???
+    output = sigmoid(arg.forward())
+    output
+  }
+  def backward(gradient: Double): Unit = { //todo: ???
+    val derivative = sigmoid(arg.output) * (1 - sigmoid(arg.output))
+    arg.backward( gradient * derivative )
+  }
+  def update(learningRate: Double): Unit = { //todo: ???
+    arg.update(learningRate)
+  }
 }
 
 /**
@@ -175,11 +203,16 @@ case class Sigmoid(arg: Block[Double]) extends Block[Double] {
  * @param target the target value (1.0 positive sentiment, 0.0 negative sentiment)
  */
 case class NegativeLogLikelihoodLoss(arg: Block[Double], target: Double) extends Loss {
-  def forward(): Double = ???
+  def forward(): Double = { //todo: ???
+    output = ( -target*scala.math.log(arg.forward()) ) - ( (1-target) * (scala.math.log(1-arg.forward())) )
+    output
+  }
   //loss functions are root nodes so they don't have upstream gradients
   def backward(gradient: Double): Unit = backward()
-  def backward(): Unit = ???
-  def update(learningRate: Double): Unit = ???
+  def backward(): Unit = { //todo: ???
+    output = ( target - arg.output ) / ( arg.output * (arg.output - 1) )
+  }
+  def update(learningRate: Double): Unit = { } //todo: ???
 }
 
 /**
@@ -196,18 +229,18 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
     val losses = args.map(arg => {
       val in = arg.forward()
       in match {
-        case v: Vector => ???
-        case w: Matrix => ???
+        case v: Vector => (strength/2)*scala.math.pow( breeze.linalg.sum(v) , 2) //todo: ???
+        case w: Matrix => ??? //todo: ??? w.toDenseVector
       }
     })
-    output = ??? //sums the losses up
+    output = losses.sum//todo: ??? //sums the losses up
     output
   }
-  def update(learningRate: Double): Unit = ???
+  def update(learningRate: Double): Unit = args.map(_.update(learningRate)) //todo: ???
   //loss functions are root nodes so they don't have upstream gradients
   def backward(gradient: Double): Unit = backward()
   def backward(): Unit = args.foreach(x => x.backward((x.forward() match {
-    case v: Vector => ???
+    case v: Vector => strength * v
     case w: Matrix => ???
   }).asInstanceOf[P]))
 }
