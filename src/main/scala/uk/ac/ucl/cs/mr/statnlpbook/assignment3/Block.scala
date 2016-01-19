@@ -129,7 +129,7 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
    * @param learningRate learning rate used for the update
    */
   def update(learningRate: Double): Unit = {
-    param :-= (breeze.linalg.clip(gradParam, -clip, clip) * learningRate) //in-place
+    param :-= (breeze.linalg.clip(gradParam, -clip, clip) :* learningRate) //in-place
     resetGradient()
   }
   /**
@@ -259,28 +259,28 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
  */
 case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamBlock[Matrix] with GaussianDefaultInitialization {
 
-  var param: Matrix = initialize(defaultInitialization)
-  val gradParam: Matrix = Matrix.zeros[Double](dim1, dim2)
+  var param: Matrix = initialize(defaultInitialization) //todo: ???
+  val gradParam: Matrix = eye(dim1, dim2, 0.0) //todo: ???
 
-  def forward(): Matrix = {
+  def forward(): Matrix = { //todo: ???
     output = param
     param
   }
 
-  def backward(gradient: Matrix): Unit = {
+  def backward(gradient: Matrix): Unit = { //todo: ???
     gradParam :+= gradient
   }
 
   def resetGradient(): Unit = {
-    gradParam :*= Vector.zeros[Double](gradParam.activeSize)
+    gradParam :*= eye(dim1, dim2, 0.0) //todo: ??? Vector.zeros[Double](gradParam.activeSize)
   }
 
-  def update(learningRate: Double): Unit = {
-    param :-= (breeze.linalg.clip(gradParam, -clip, clip) * learningRate)
+  def update(learningRate: Double): Unit = { //todo: ???
+    param :-= (breeze.linalg.clip(gradParam, -clip, clip) :* learningRate)
     resetGradient()
   }
 
-  def initialize(dist: () => Double): Matrix = {
+  def initialize(dist: () => Double): Matrix = { //todo: ???
     param = randMat(dim1, dim2, dist)
     param
   }
@@ -298,11 +298,10 @@ case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
   //output = arg1.forward() dot arg2.forward()
   //output
 
-  def backward(gradient: Vector): Unit = {
-    arg1.backward(gradient * arg2.output)
-  }
+  def backward(gradient: Vector): Unit = ??? //todo: ??? arg1.backward(gradient * arg2.output)
 
-  def update(learningRate: Double): Unit = {
+
+  def update(learningRate: Double): Unit = { //todo: ???
     arg1.update(learningRate)
     arg2.update(learningRate)
   }
@@ -315,14 +314,17 @@ case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
  */
 case class Tanh(arg: Block[Vector]) extends Block[Vector] {
 
-  def forward(): Vector = {
-    output = breeze.numerics.tanh(arg)
+  def forward(): Vector = { //todo: ???
+    output = tanh(arg.forward())
     output
   }
 
-  def backward(gradient: Vector): Unit = arg.backward(gradient)
+  def backward(gradient: Vector): Unit = { //todo: ???
+    arg.backward( gradient :*
+                  breeze.numerics.pow(  breeze.numerics.cosh(arg.output) :* breeze.numerics.cosh(arg.output) , -1) )
+  }
 
-  def update(learningRate: Double): Unit = {
+  def update(learningRate: Double): Unit = { //todo: ???
     arg.update(learningRate)
   }
 }

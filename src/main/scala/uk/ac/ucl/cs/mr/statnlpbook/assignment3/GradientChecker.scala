@@ -83,8 +83,9 @@ object GradientChecker extends App {
   val e = DoubleConstant(0.5)
   //val simpleBlock = Sigmoid(e) //Check implementation of SIGMOID
   //val simpleBlock = NegativeLogLikelihoodLoss(e, 1) //Check implementation of NEGATIVE LOG LIKELIHOOD
-  val simpleBlock = L2Regularization(0.03, b, c) //Check implementation of L2 REGULARISATION on vectors
-  val W = mat(2,3)(1.0, -2.0, 3.0, -4.0, 5.0, -6.0)
+  //val simpleBlock = L2Regularization(0.03, b, c) //Check implementation of L2 REGULARISATION on vectors
+  val simpleBlock = Dot (a, Tanh(b)) //Check implementation of TANH
+  //val W = mat(2,3)(1.0, -2.0, 3.0, -4.0, 5.0, -6.0)
   //val simpleBlock = L2Regularization(0.03, W)
   GradientChecker(simpleBlock, b)
 }
