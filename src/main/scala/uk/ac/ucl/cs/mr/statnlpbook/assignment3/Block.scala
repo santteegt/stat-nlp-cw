@@ -293,12 +293,22 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
  */
 case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
 
-  def forward(): Vector = ???
+  def forward(): Vector = { //todo: ???
 
-  //output = arg1.forward() dot arg2.forward()
-  //output
+    if (arg1.forward().cols == arg2.forward().length) {
+      output = arg1.forward() * arg2.forward().t
+    } else {
+      println("Matrix columns and Vector rows are not equal.")
+    }
 
-  def backward(gradient: Vector): Unit = ??? //todo: ??? arg1.backward(gradient * arg2.output)
+    output
+
+  }
+
+  def backward(gradient: Vector): Unit = { //todo: ??? arg1.backward(gradient * arg2.output)
+    arg1.backward(gradient * arg2.output)
+    arg2.backward(gradient * arg1.output.toDenseVector)
+  }
 
 
   def update(learningRate: Double): Unit = { //todo: ???
@@ -329,8 +339,6 @@ case class Tanh(arg: Block[Vector]) extends Block[Vector] {
   }
 }
 
-
-
 /**
   * Problem 4
   */
@@ -341,9 +349,9 @@ case class Tanh(arg: Block[Vector]) extends Block[Vector] {
  * @param arg a block evaluating to a vector whose components we want to drop
  */
 case class Dropout(prob: Double, arg: Block[Vector]) extends Block[Vector] {
-  def forward(): Vector = ???
-  def update(learningRate: Double): Unit = ???
-  def backward(gradient: Vector): Unit = ???
+  def forward(): Vector = ??? //todo: ???
+  def update(learningRate: Double): Unit = ??? //todo: ???
+  def backward(gradient: Vector): Unit = ??? //todo: ???
 }
 
 /**
