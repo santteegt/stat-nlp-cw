@@ -294,22 +294,11 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
 case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
 
   def forward(): Vector = { //todo: ???
-
-    if (arg1.forward().cols == arg2.forward().length) {
-      output = arg1.forward() * arg2.forward().t
-    } else {
-      println("Matrix columns and Vector rows are not equal.")
-    }
-
+    output = outer(arg1.forward().toDenseVector, arg2.forward()).toDenseVector
     output
-
   }
 
-  def backward(gradient: Vector): Unit = { //todo: ??? arg1.backward(gradient * arg2.output)
-    arg1.backward(gradient * arg2.output)
-    arg2.backward(gradient * arg1.output.toDenseVector)
-  }
-
+  def backward(gradient: Vector): Unit = ??? //todo: ??? arg1.backward(gradient * arg2.output)
 
   def update(learningRate: Double): Unit = { //todo: ???
     arg1.update(learningRate)
