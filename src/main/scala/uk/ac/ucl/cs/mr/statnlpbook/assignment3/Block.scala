@@ -298,7 +298,10 @@ case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
     output
   }
 
-  def backward(gradient: Vector): Unit = ??? //todo: ??? arg1.backward(gradient * arg2.output)
+  def backward(gradient: Vector): Unit = { //todo: ???
+    arg1.backward(outer(gradient, arg2.forward()))
+    arg2.backward(outer(gradient, arg1.forward().toDenseVector).toDenseVector)
+  }
 
   def update(learningRate: Double): Unit = { //todo: ???
     arg1.update(learningRate)
