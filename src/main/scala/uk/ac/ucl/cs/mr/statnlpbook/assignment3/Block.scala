@@ -210,7 +210,7 @@ case class NegativeLogLikelihoodLoss(arg: Block[Double], target: Double) extends
   //loss functions are root nodes so they don't have upstream gradients
   def backward(gradient: Double): Unit = backward()
   def backward(): Unit = { //todo: ???
-    output = ( target - arg.output ) / ( arg.output * (arg.output - 1) )
+    arg.backward( ( target - arg.output ) / ( arg.output * (arg.output - 1) ) )
   }
   def update(learningRate: Double): Unit = { } //todo: ???
 }

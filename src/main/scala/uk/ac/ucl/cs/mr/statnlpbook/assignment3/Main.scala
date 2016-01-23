@@ -9,13 +9,16 @@ object Main extends App {
    *
    * Problems 2/3/4: perform a grid search over the parameters below
    */
-  val learningRate = 0.01
-  val vectorRegularizationStrength = 0.01
+//  val learningRate = 0.01
+//  val vectorRegularizationStrength = 0.01
+  val learningRate = 0.01 //big value yield less epochs
+  val vectorRegularizationStrength = 0.03 // best valua until now
   val matrixRegularizationStrength = 0.0
   val wordDim = 10
   val hiddenDim = 10
 
   val trainSetName = "train"
+//  val trainSetName = "debug"
   val validationSetName = "dev"
 
   val model: Model = new SumOfWordVectorsModel(wordDim, vectorRegularizationStrength)
@@ -26,7 +29,10 @@ object Main extends App {
       iter, accLoss, 100 * Evaluator(model, trainSetName), 100*Evaluator(model, validationSetName)))
   }
 
+  val timer = System.currentTimeMillis();
   StochasticGradientDescentLearner(model, trainSetName, 100, learningRate, epochHook)
+  val timeElapsed = (System.currentTimeMillis() - timer)/1000.00;
+  println("Process time elapsed: %.2f seconds".format(timeElapsed))
 
 
 

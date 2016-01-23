@@ -80,15 +80,16 @@ class SumOfWordVectorsModel(embeddingSize: Int, regularizationStrength: Double =
   /**
    * We are also going to need another global vector parameter
    */
-  vectorParams += "param_w" -> VectorParam(???)
+  vectorParams += "param_w" -> VectorParam(embeddingSize) //todo : ???
 
-  def wordToVector(word: String): Block[Vector] = ???
+  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
 
-  def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = ???
 
-  def scoreSentence(sentence: Block[Vector]): Block[Double] = ???
+  def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = Sum(words) //todo: ???
 
-  def regularizer(words: Seq[Block[Vector]]): Loss = L2Regularization(regularizationStrength, ???)
+  def scoreSentence(sentence: Block[Vector]): Block[Double] = Sigmoid( Dot(vectorParams("param_w"), sentence) ) //todo: ???
+
+  def regularizer(words: Seq[Block[Vector]]): Loss = L2Regularization(regularizationStrength, (words ++ Seq[Block[Vector]](vectorParams("param_w"))):_* ) //todo: ???
 }
 
 
