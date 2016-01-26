@@ -106,24 +106,41 @@ class RecurrentNeuralNetworkModel(embeddingSize: Int, hiddenSize: Int,
                                   matrixRegularizationStrength: Double = 0.0) extends Model {
   override val vectorParams: mutable.HashMap[String, VectorParam] =
     LookupTable.trainableWordVectors
-  vectorParams += "param_w" -> VectorParam(???)
-  vectorParams += "param_h0" -> VectorParam(???)
-  vectorParams += "param_b" -> VectorParam(???)
+  vectorParams += "param_w" -> VectorParam(embeddingSize) //todo: ???
+  vectorParams += "param_h0" -> VectorParam(hiddenSize) //todo: ???
+  vectorParams += "param_b" -> VectorParam(hiddenSize) //todo: ???
 
   override val matrixParams: mutable.HashMap[String, MatrixParam] =
     new mutable.HashMap[String, MatrixParam]()
-  matrixParams += "param_Wx" -> MatrixParam(???, ???)
-  matrixParams += "param_Wh" -> MatrixParam(???, ???)
+  matrixParams += "param_Wx" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
+  matrixParams += "param_Wh" -> MatrixParam(hiddenSize, embeddingSize) //todo: ???
 
-  def wordToVector(word: String): Block[Vector] = ???
+  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
 
-  def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = ???
+  def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = { //todo: ???
+    val h_0 = Tanh( Sum( Seq( Mul(matrixParams("param_Wh"), vectorParams("param_h0")), vectorParams("param_b") ) ) )
+    words.foldLeft(h_0)( (h_t_m1, word) =>
+                                            Tanh(
+                                              Sum(
+                                                Seq(
+                                                  Sum(
+                                                    Seq(
+                                                      Mul( matrixParams("param_Wh"), h_t_m1.forward() ),
+                                                      Mul( matrixParams("param_Wx"), word )
+                                                    )
+                                                  ),
+                                                  vectorParams("param_b")
+                                                )
+                                              )
+                                            )
+                      )
+  }
 
-  def scoreSentence(sentence: Block[Vector]): Block[Double] = ???
+  def scoreSentence(sentence: Block[Vector]): Block[Double] = Sigmoid( Dot(vectorParams("param_w"), sentence) )  //todo: ???
 
   def regularizer(words: Seq[Block[Vector]]): Loss =
     new LossSum(
-      L2Regularization(vectorRegularizationStrength, ???),
-      L2Regularization(matrixRegularizationStrength, ???)
+      L2Regularization(vectorRegularizationStrength, (words ++ Seq[Block[Vector]](vectorParams("param_w"), vectorParams("param_h0"), vectorParams("param_b"))):_*), //todo: ???
+      L2Regularization(matrixRegularizationStrength, Seq(matrixParams("param_Wh"), matrixParams("param_Wx")):_*) //todo: ???
     )
 }

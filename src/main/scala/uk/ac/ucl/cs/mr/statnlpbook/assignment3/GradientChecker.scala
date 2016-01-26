@@ -78,14 +78,48 @@ object GradientChecker extends App {
   val c = VectorParam(4)
   c.set(vec(2.0, 1.0, -2.5, 0.5))
   //val simpleBlock = Dot(a, b) //Check implementation of DOT
+  //GradientChecker(simpleBlock, b) //Check for Blocks
   val d = Sum(Seq(b, c))
   //val simpleBlock = Dot(a, d) //Check implementation of DOT and SUM
-  val e = DoubleConstant(0.5)
+  //GradientChecker(simpleBlock, d) //Check for Blocks
+  val e = DoubleConstant(0.45)
   //val simpleBlock = Sigmoid(e) //Check implementation of SIGMOID
   //val simpleBlock = NegativeLogLikelihoodLoss(e, 1) //Check implementation of NEGATIVE LOG LIKELIHOOD
-  //val simpleBlock = L2Regularization(0.03, b, c) //Check implementation of L2 REGULARISATION on vectors
-  val simpleBlock = Dot (a, Tanh(b)) //Check implementation of TANH
-  //val W = mat(2,3)(1.0, -2.0, 3.0, -4.0, 5.0, -6.0)
+  //val simpleBlock = L2Regularization(0.003, b, c) //Check implementation of L2 REGULARISATION on vectors
+  //val simpleBlock = Dot (a, Tanh(b)) //Check implementation of TANH
+
+  val (sentence, target) = SentimentAnalysisCorpus.getExample("train") //Check the implementation of SUMOFWORDSVECTOR model
+  val model = new SumOfWordVectorsModel(10, 1)
+//  val wordVectors = sentence.map(model.wordToVector)
+//  val sentenceVector = model.wordVectorsToSentenceVector(wordVectors)
+  //val predict = model.predict(sentence)
+
+//  val simpleBlock = model.loss(sentence, target)
+//  GradientChecker(simpleBlock, model.vectorParams.head._2) //Check for models
+  //GradientChecker(simpleBlock, model.vectorParams("param_w")) //Check for models
+
+
+  val W = MatrixParam(2, 3)
+  W.set( mat(2,3)(1.0, -2.0, 3.0, -4.0, 5.0, -6.0) )
   //val simpleBlock = L2Regularization(0.03, W)
-  GradientChecker(simpleBlock, b)
+  //GradientChecker(simpleBlock, W) //Check for Blocks
+
+  val const = VectorParam(3)
+  const.set(vec(-1.5, 1.0, 1.5))
+
+  val param = Mul(W, const)
+  //val simpleBlock = Dot(vec(5, -1), param)
+  //GradientChecker(simpleBlock, W) //Check for Blocks
+
+  val tanh =Tanh(param)
+  val param2 = VectorParam(tanh.forward().activeSize)
+  param2.set(tanh.output)
+//  val simpleBlock  = Dot(vec(5, -1), param2)
+//  GradientChecker(simpleBlock, param2) //Check for Blocks
+
+  val model2 = new RecurrentNeuralNetworkModel(10, 10, 1, 1) // Check the implementation of RNN model
+  val simpleBlock = model2.loss(sentence, target)
+  //GradientChecker(simpleBlock, model.vectorParams("param_w")) //Check for models
+  GradientChecker(simpleBlock, model.vectorParams.head._2) //Check for models
+
 }

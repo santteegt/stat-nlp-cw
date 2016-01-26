@@ -50,6 +50,7 @@ trait DefaultInitialization {
  */
 trait GaussianDefaultInitialization extends DefaultInitialization {
   def defaultInitialization(): Double = random.nextGaussian() * 0.1
+  def xavierInitialization(mean: Double, variance: Double): Double = mean + (random.nextGaussian() * variance)
 }
 
 /**
@@ -105,6 +106,7 @@ class LossSum(override val args: Loss*) extends DoubleSum(args:_*) with Loss {
  */
 case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector] with GaussianDefaultInitialization {
   var param: Vector = initialize(defaultInitialization) //todo: initialize using default initialization
+//  var param: Vector = xavierInitialization()
   val gradParam: Vector = Vector.zeros[Double](dim) //todo: initialize with zeros
   /**
    * @return the current value of the vector parameter and caches it into output
@@ -141,6 +143,13 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
     param = randVec(dim, dist)
     param
   }
+
+  def xavierInitialization(): Vector = {
+    param = vec((0 until dim).map(i => xavierInitialization(0.0, (1.0/dim))):_*)
+    param
+  }
+
+
 }
 
 /**
@@ -241,7 +250,7 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
   def backward(gradient: Double): Unit = backward()
   def backward(): Unit = args.foreach(x => x.backward((x.forward() match { //todo: ???
     case v: Vector => strength * v
-    case w: Matrix => strength * w.toDenseVector
+    case w: Matrix => strength * w
   }).asInstanceOf[P]))
 }
 
@@ -260,6 +269,7 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
 case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamBlock[Matrix] with GaussianDefaultInitialization {
 
   var param: Matrix = initialize(defaultInitialization) //todo: ???
+//  var param: Matrix = xavierInitialization
   val gradParam: Matrix = eye(dim1, dim2, 0.0) //todo: ???
 
   def forward(): Matrix = { //todo: ???
@@ -267,9 +277,7 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
     param
   }
 
-  def backward(gradient: Matrix): Unit = { //todo: ???
-    gradParam :+= gradient
-  }
+  def backward(gradient: Matrix): Unit = gradParam :+= gradient //todo: ???
 
   def resetGradient(): Unit = {
     gradParam :*= eye(dim1, dim2, 0.0) //todo: ??? Vector.zeros[Double](gradParam.activeSize)
@@ -284,6 +292,11 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
     param = randMat(dim1, dim2, dist)
     param
   }
+
+  def xavierInitialization(): Matrix = { //todo: ???
+    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/dim1))).toArray)
+    param
+  }
 }
 
 /**
@@ -294,13 +307,13 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
 case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
 
   def forward(): Vector = { //todo: ???
-    output = outer(arg1.forward().toDenseVector, arg2.forward()).toDenseVector
+    output = arg1.forward() * arg2.forward()
     output
   }
 
   def backward(gradient: Vector): Unit = { //todo: ???
-    arg1.backward(outer(gradient, arg2.forward()))
-    arg2.backward(outer(gradient, arg1.forward().toDenseVector).toDenseVector)
+    arg1.backward( outer(gradient, arg2.output) )
+    arg2.backward( arg1.output.t * gradient )
   }
 
   def update(learningRate: Double): Unit = { //todo: ???
