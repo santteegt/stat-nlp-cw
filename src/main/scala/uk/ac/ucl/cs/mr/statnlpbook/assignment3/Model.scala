@@ -106,14 +106,17 @@ class RecurrentNeuralNetworkModel(embeddingSize: Int, hiddenSize: Int,
                                   matrixRegularizationStrength: Double = 0.0) extends Model {
   override val vectorParams: mutable.HashMap[String, VectorParam] =
     LookupTable.trainableWordVectors
-  vectorParams += "param_w" -> VectorParam(embeddingSize) //todo: ???
+//  vectorParams += "param_w" -> VectorParam(embeddingSize) //todo: ???
+  vectorParams += "param_w" -> VectorParam(hiddenSize) //todo: ???
   vectorParams += "param_h0" -> VectorParam(hiddenSize) //todo: ???
   vectorParams += "param_b" -> VectorParam(hiddenSize) //todo: ???
 
   override val matrixParams: mutable.HashMap[String, MatrixParam] =
     new mutable.HashMap[String, MatrixParam]()
-  matrixParams += "param_Wx" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
-  matrixParams += "param_Wh" -> MatrixParam(hiddenSize, embeddingSize) //todo: ???
+//  matrixParams += "param_Wx" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
+//  matrixParams += "param_Wh" -> MatrixParam(hiddenSize, embeddingSize) //todo: ???
+    matrixParams += "param_Wx" -> MatrixParam(hiddenSize, embeddingSize) //todo: ???
+    matrixParams += "param_Wh" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
 
   def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
 

@@ -105,8 +105,8 @@ class LossSum(override val args: Loss*) extends DoubleSum(args:_*) with Loss {
  * @param clip defines range in which gradients are clipped, i.e., (-clip, clip)
  */
 case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector] with GaussianDefaultInitialization {
-  var param: Vector = initialize(defaultInitialization) //todo: initialize using default initialization
-//  var param: Vector = xavierInitialization()
+//  var param: Vector = initialize(defaultInitialization) //todo: initialize using default initialization
+  var param: Vector = xavierInitialization()
   val gradParam: Vector = Vector.zeros[Double](dim) //todo: initialize with zeros
   /**
    * @return the current value of the vector parameter and caches it into output
@@ -268,9 +268,9 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
  */
 case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamBlock[Matrix] with GaussianDefaultInitialization {
 
-  var param: Matrix = initialize(defaultInitialization) //todo: ???
-//  var param: Matrix = xavierInitialization
-  val gradParam: Matrix = eye(dim1, dim2, 0.0) //todo: ???
+//  var param: Matrix = initialize(defaultInitialization) //todo: ???
+  var param: Matrix = xavierInitialization
+  val gradParam: Matrix = Matrix.zeros[Double](dim1, dim2) //todo: ???
 
   def forward(): Matrix = { //todo: ???
     output = param
@@ -280,7 +280,7 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
   def backward(gradient: Matrix): Unit = gradParam :+= gradient //todo: ???
 
   def resetGradient(): Unit = {
-    gradParam :*= eye(dim1, dim2, 0.0) //todo: ??? Vector.zeros[Double](gradParam.activeSize)
+    gradParam :*= Matrix.zeros[Double](dim1, dim2) //todo: ???
   }
 
   def update(learningRate: Double): Unit = { //todo: ???
@@ -294,7 +294,9 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
   }
 
   def xavierInitialization(): Matrix = { //todo: ???
-    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/dim1))).toArray)
+    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/dim2))).toArray)
+//    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/scala.math.sqrt(dim2)))).toArray)
+//    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (scala.math.sqrt(6)/scala.math.sqrt(dim2*2)))).toArray)
     param
   }
 }
