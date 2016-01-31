@@ -84,12 +84,18 @@ object GradientChecker extends App {
   //GradientChecker(simpleBlock, d) //Check for Blocks
   val e = DoubleConstant(0.45)
   //val simpleBlock = Sigmoid(e) //Check implementation of SIGMOID
+
+
+  //val simpleBlock = ReLU(b) //Check implementation of SIGMOID
+  //GradientChecker(simpleBlock, b) //Check for Blocks
+
+
   //val simpleBlock = NegativeLogLikelihoodLoss(e, 1) //Check implementation of NEGATIVE LOG LIKELIHOOD
   //val simpleBlock = L2Regularization(0.003, b, c) //Check implementation of L2 REGULARISATION on vectors
   //val simpleBlock = Dot (a, Tanh(b)) //Check implementation of TANH
 
   val (sentence, target) = SentimentAnalysisCorpus.getExample("train") //Check the implementation of SUMOFWORDSVECTOR model
-  val model = new SumOfWordVectorsModel(10, 1)
+  val model = new SumOfWordVectorsModel(10, 0)
 //  val wordVectors = sentence.map(model.wordToVector)
 //  val sentenceVector = model.wordVectorsToSentenceVector(wordVectors)
   //val predict = model.predict(sentence)
@@ -117,9 +123,28 @@ object GradientChecker extends App {
 //  val simpleBlock  = Dot(vec(5, -1), param2)
 //  GradientChecker(simpleBlock, param2) //Check for Blocks
 
-  val model2 = new RecurrentNeuralNetworkModel(10, 10, 1, 1) // Check the implementation of RNN model
-  val simpleBlock = model2.loss(sentence, target)
+  val model2 = new RecurrentNeuralNetworkModel(10, 10, 0, 0) // Check the implementation of RNN model
+//  val simpleBlock = model2.loss(sentence, target)
+//  GradientChecker(simpleBlock, model.vectorParams.head._2) //Check for models
   //GradientChecker(simpleBlock, model.vectorParams("param_w")) //Check for models
-  GradientChecker(simpleBlock, model.vectorParams.head._2) //Check for models
+
+
+  val rr = model.vectorParams.head._2
+  val dropout = Dropout(0.5, rr, false)
+  //val simpleBlock = Dot(dropout, rr) //Check implementation of SIGMOID
+  //GradientChecker(simpleBlock, rr)
+
+//  val param3 = VectorParam(dropout.forward().activeSize)
+//  param3.set(dropout.output)
+//  val simpleBlock  = Dot(model.vectorParams("param_w"), param3)
+//  GradientChecker(simpleBlock, param3) //Check for Blocks
+
+//  val mulv = MulV(a, b) //Check implementation of MULV
+//  val simpleBlock = Dot(mulv, b)
+//    GradientChecker(simpleBlock, b) //Check for Blocks
+
+  val sigmoidv = SigmoidV(b) //Check implementation of SIGMOIDV
+  val simpleBlock = Dot(sigmoidv, c)
+  GradientChecker(simpleBlock, c) //Check for Blocks
 
 }

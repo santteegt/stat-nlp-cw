@@ -1,7 +1,10 @@
 package uk.ac.ucl.cs.mr.statnlpbook.assignment3
 
-import breeze.numerics.{log, sigmoid, tanh} //yes, you will need them ;)
-import breeze.linalg.{DenseMatrix => Matrix, DenseVector => Vector}
+import breeze.numerics.{log, sigmoid, tanh, pow, sqrt, cosh}
+import breeze.stats.distributions.Bernoulli
+
+//yes, you will need them ;)
+import breeze.linalg.{DenseMatrix => Matrix, DenseVector => Vector, clip}
 
 /**
  * @author rockt
@@ -9,7 +12,8 @@ import breeze.linalg.{DenseMatrix => Matrix, DenseVector => Vector}
 
 /**
  * A trait for the core building **block** of our computation graphs
- * @tparam T the type parameter this block evaluates to (can be Double, Vector, Matrix)
+  *
+  * @tparam T the type parameter this block evaluates to (can be Double, Vector, Matrix)
  */
 trait Block[T] {
   //caches output after call of forward
@@ -51,11 +55,18 @@ trait DefaultInitialization {
 trait GaussianDefaultInitialization extends DefaultInitialization {
   def defaultInitialization(): Double = random.nextGaussian() * 0.1
   def xavierInitialization(mean: Double, variance: Double): Double = mean + (random.nextGaussian() * variance)
+//  def xavierInitialization(mean: Double, variance: Double): Double = mean + (random.nextDouble() * variance)
+}
+
+trait BernoulliInitialization extends DefaultInitialization {
+  val Bernoulli: breeze.stats.distributions.Bernoulli
+  def defaultInitialization(): Double = if(Bernoulli.draw()) 1.0 else 0.0
 }
 
 /**
  * A simple block that represents a constant double value
- * @param arg the constant double value
+  *
+  * @param arg the constant double value
  */
 case class DoubleConstant(arg: Double) extends Block[Double] with Loss {
   output = arg
@@ -67,7 +78,8 @@ case class DoubleConstant(arg: Double) extends Block[Double] with Loss {
 
 /**
  * A simple block that represents a constant vector
- * @param arg the constant vector
+  *
+  * @param arg the constant vector
  */
 case class VectorConstant(arg: Vector) extends Block[Vector] {
   output = arg
@@ -78,7 +90,8 @@ case class VectorConstant(arg: Vector) extends Block[Vector] {
 
 /**
  * A block representing a sum of doubles
- * @param args a sequence of blocks that evaluate to doubles
+  *
+  * @param args a sequence of blocks that evaluate to doubles
  */
 case class DoubleSum(args: Block[Double]*) extends Block[Double] {
   def forward(): Double = {
@@ -101,12 +114,13 @@ class LossSum(override val args: Loss*) extends DoubleSum(args:_*) with Loss {
 
 /**
  * A block representing a vector parameter
- * @param dim dimension of the vector
+  *
+  * @param dim dimension of the vector
  * @param clip defines range in which gradients are clipped, i.e., (-clip, clip)
  */
 case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector] with GaussianDefaultInitialization {
-//  var param: Vector = initialize(defaultInitialization) //todo: initialize using default initialization
-  var param: Vector = xavierInitialization()
+  var param: Vector = initialize(defaultInitialization) //todo: initialize using default initialization
+//  var param: Vector = xavierInitialization()
   val gradParam: Vector = Vector.zeros[Double](dim) //todo: initialize with zeros
   /**
    * @return the current value of the vector parameter and caches it into output
@@ -117,7 +131,8 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
   }
   /**
    * Accumulates the gradient in gradParam
-   * @param gradient an upstream gradient
+    *
+    * @param gradient an upstream gradient
    */
   def backward(gradient: Vector): Unit = gradParam :+= gradient
   /**
@@ -128,7 +143,8 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
   }
   /**
    * Updates param using the accumulated gradient. Clips the gradient to the interval (-clip, clip) before the update
-   * @param learningRate learning rate used for the update
+    *
+    * @param learningRate learning rate used for the update
    */
   def update(learningRate: Double): Unit = {
     param :-= (breeze.linalg.clip(gradParam, -clip, clip) :* learningRate) //in-place
@@ -136,7 +152,8 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
   }
   /**
    * Initializes the parameter randomly using a sampling function
-   * @param dist sampling function
+    *
+    * @param dist sampling function
    * @return the random parameter vector
    */
   def initialize(dist: () => Double): Vector = {
@@ -146,6 +163,8 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
 
   def xavierInitialization(): Vector = {
     param = vec((0 until dim).map(i => xavierInitialization(0.0, (1.0/dim))):_*)
+//    param = vec((0 until dim).map(i => xavierInitialization(0.0, (1.0/scala.math.sqrt(dim)))):_*)
+//    param = vec((0 until dim).map(i => xavierInitialization(0.0, (scala.math.sqrt(6)/scala.math.sqrt(dim*2)))):_*)
     param
   }
 
@@ -154,7 +173,8 @@ case class VectorParam(dim: Int, clip: Double = 10.0) extends ParamBlock[Vector]
 
 /**
  * A block representing the sum of vectors
- * @param args a sequence of blocks that evaluate to vectors
+  *
+  * @param args a sequence of blocks that evaluate to vectors
  */
 case class Sum(args: Seq[Block[Vector]]) extends Block[Vector] {
   def forward(): Vector = { //todo: ???
@@ -168,7 +188,8 @@ case class Sum(args: Seq[Block[Vector]]) extends Block[Vector] {
 
 /**
  * A block representing the dot product between two vectors
- * @param arg1 left block that evaluates to a vector
+  *
+  * @param arg1 left block that evaluates to a vector
  * @param arg2 right block that evaluates to a vector
  */
 case class Dot(arg1: Block[Vector], arg2: Block[Vector]) extends Block[Double] {
@@ -189,7 +210,8 @@ case class Dot(arg1: Block[Vector], arg2: Block[Vector]) extends Block[Double] {
 
 /**
  * A block representing the sigmoid of a scalar value
- * @param arg a block that evaluates to a double
+  *
+  * @param arg a block that evaluates to a double
  */
 case class Sigmoid(arg: Block[Double]) extends Block[Double] {
 
@@ -208,12 +230,13 @@ case class Sigmoid(arg: Block[Double]) extends Block[Double] {
 
 /**
  * A block representing the negative log-likelihood loss
- * @param arg a block evaluating to a scalar value
+  *
+  * @param arg a block evaluating to a scalar value
  * @param target the target value (1.0 positive sentiment, 0.0 negative sentiment)
  */
 case class NegativeLogLikelihoodLoss(arg: Block[Double], target: Double) extends Loss {
   def forward(): Double = { //todo: ???
-    output = ( -target*scala.math.log(arg.forward()) ) - ( (1-target) * (scala.math.log(1-arg.forward())) )
+    output = ( -target*log(arg.forward()) ) - ( (1-target) * (log(1-arg.forward())) )
     output
   }
   //loss functions are root nodes so they don't have upstream gradients
@@ -226,7 +249,8 @@ case class NegativeLogLikelihoodLoss(arg: Block[Double], target: Double) extends
 
 /**
  * A block representing the l2 regularization of a vector or matrix
- * @param strength the strength of the regularization (often denoted as lambda)
+  *
+  * @param strength the strength of the regularization (often denoted as lambda)
  * @param args a block evaluating to a vector or matrix
  * @tparam P type of the input block (we assume this is Block[Vector] or Block[Matrix]
  */
@@ -238,8 +262,8 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
     val losses = args.map(arg => {
       val in = arg.forward()
       in match {
-        case v: Vector => (strength/2)*scala.math.pow( breeze.linalg.norm(v) , 2) //todo: ???
-        case w: Matrix => (strength/2)*scala.math.pow( breeze.linalg.norm(w.toDenseVector) , 2) //todo: ??? w.toDenseVector
+        case v: Vector => (strength/2)*pow( breeze.linalg.norm(v) , 2) //todo: ???
+        case w: Matrix => (strength/2)*pow( breeze.linalg.norm(w.toDenseVector) , 2) //todo: ??? w.toDenseVector
       }
     })
     output = losses.sum//todo: ??? //sums the losses up
@@ -262,14 +286,15 @@ case class L2Regularization[P](strength: Double, args: Block[P]*) extends Loss {
 
 /**
  * A block representing a matrix parameter
- * @param dim1 first dimension of the matrix
+  *
+  * @param dim1 first dimension of the matrix
  * @param dim2 second dimension of the matrix
  * @param clip defines range in which gradients are clipped, i.e., (-clip, clip)
  */
 case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamBlock[Matrix] with GaussianDefaultInitialization {
 
-//  var param: Matrix = initialize(defaultInitialization) //todo: ???
-  var param: Matrix = xavierInitialization
+  var param: Matrix = initialize(defaultInitialization) //todo: ???
+//  var param: Matrix = xavierInitialization
   val gradParam: Matrix = Matrix.zeros[Double](dim1, dim2) //todo: ???
 
   def forward(): Matrix = { //todo: ???
@@ -294,8 +319,8 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
   }
 
   def xavierInitialization(): Matrix = { //todo: ???
-    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/dim2))).toArray)
-//    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/scala.math.sqrt(dim2)))).toArray)
+//    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/dim2))).toArray)
+    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (1.0/scala.math.sqrt(dim2)))).toArray)
 //    param = new Matrix(dim1, dim2, (0 until dim1 * dim2).map(i => xavierInitialization(0.0, (scala.math.sqrt(6)/scala.math.sqrt(dim2*2)))).toArray)
     param
   }
@@ -303,7 +328,8 @@ case class MatrixParam(dim1: Int, dim2: Int, clip: Double = 10.0) extends ParamB
 
 /**
  * A block representing matrix-vector multiplication
- * @param arg1 the left block evaluating to a matrix
+  *
+  * @param arg1 the left block evaluating to a matrix
  * @param arg2 the right block evaluation to a vector
  */
 case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
@@ -327,7 +353,8 @@ case class Mul(arg1: Block[Matrix], arg2: Block[Vector]) extends Block[Vector] {
 
 /**
  * A block representing the element-wise application of the tanh function to a vector
- * @param arg a block evaluating to a vector
+  *
+  * @param arg a block evaluating to a vector
  */
 case class Tanh(arg: Block[Vector]) extends Block[Vector] {
 
@@ -337,8 +364,7 @@ case class Tanh(arg: Block[Vector]) extends Block[Vector] {
   }
 
   def backward(gradient: Vector): Unit = { //todo: ???
-    arg.backward( gradient :*
-                  breeze.numerics.pow(  breeze.numerics.cosh(arg.output) :* breeze.numerics.cosh(arg.output) , -1) )
+    arg.backward( gradient :* pow(  cosh(arg.output) :* cosh(arg.output) , -1) )
   }
 
   def update(learningRate: Double): Unit = { //todo: ???
@@ -352,15 +378,89 @@ case class Tanh(arg: Block[Vector]) extends Block[Vector] {
 
 /**
  * A potentially useful block for training a better model (https://en.wikipedia.org/wiki/Dropout_(neural_networks))
+ *
  * @param prob dropout probability
  * @param arg a block evaluating to a vector whose components we want to drop
  */
-case class Dropout(prob: Double, arg: Block[Vector]) extends Block[Vector] {
-  def forward(): Vector = ??? //todo: ???
-  def update(learningRate: Double): Unit = ??? //todo: ???
-  def backward(gradient: Vector): Unit = ??? //todo: ???
+case class Dropout(prob: Double, arg: Block[Vector], train: Boolean) extends Block[Vector] with BernoulliInitialization {
+  override val Bernoulli = new Bernoulli(1 - prob)
+  var dropout = doubleToVector(0.0)
+  def forward(): Vector = { //todo: ???
+    output = arg.forward()
+    dropout = randVec(output.activeSize, defaultInitialization) :/ (1-prob)
+    if(train) {
+      output :*= dropout
+    } else {
+      output *= (1-prob)
+    }
+    output
+  }
+  def backward(gradient: Vector): Unit = { //todo: ???
+    if(train)
+//      arg.backward((gradient :* dropout) * (1-prob))
+//      arg.backward((gradient :* dropout) * prob)
+      arg.backward((gradient :* dropout))
+//    else
+//      arg.backward(gradient *prob)
+  }
+  def update(learningRate: Double): Unit = { //todo: ???
+    arg.update(learningRate)
+  }
+}
+
+case class SigmoidV(arg: Block[Vector]) extends Block[Vector] {
+
+  def forward(): Vector = { //todo: ???
+    output = sigmoid(arg.forward())
+    output
+  }
+  def backward(gradient: Vector): Unit = { //todo: ???
+  val derivative = sigmoid(arg.output) :* (Vector.ones[Double](arg.output.activeSize) - sigmoid(arg.output))
+    arg.backward( gradient :* derivative )
+  }
+  def update(learningRate: Double): Unit = { //todo: ???
+    arg.update(learningRate)
+  }
+}
+
+case class MulV(arg1: Block[Vector], arg2: Block[Vector]) extends Block[Vector] {
+  def forward(): Vector = { //todo: ???
+    output = arg1.forward() :* arg2.forward()
+    output
+  }
+  def backward(gradient: Vector): Unit = {
+    //val upstreamGradientVector = Vector.ones[Double](arg1.output.activeSize) * gradient
+    arg1.backward( gradient :* arg2.output ) //todo: ???
+    arg2.backward( gradient :* arg1.output )
+  }
+  def update(learningRate: Double): Unit = {  //todo: ???
+    arg1.update(learningRate)
+    arg2.update(learningRate)
+  }
 }
 
 /**
   * ... be free, be creative :)
   */
+
+/**
+  * A block representing the sigmoid of a scalar value
+  *
+  * @param arg a block that evaluates to a double
+  */
+case class ReLU(arg: Block[Vector]) extends Block[Double] {
+
+  def forward(): Double = { //todo: ???
+    output = scala.math.max(0, breeze.linalg.max(arg.forward()) )
+    output
+  }
+
+  def backward(gradient: Double): Unit = { //todo: ???
+    val derivative = gradient * clip(arg.output, 0.0, 1.0)
+    arg.backward( derivative )
+  }
+
+  def update(learningRate: Double): Unit = { //todo: ???
+    arg.update(learningRate)
+  }
+}
