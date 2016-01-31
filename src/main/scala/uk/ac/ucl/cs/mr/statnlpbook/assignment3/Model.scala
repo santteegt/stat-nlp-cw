@@ -1,6 +1,8 @@
 package uk.ac.ucl.cs.mr.statnlpbook.assignment3
 
-import breeze.linalg.{DenseMatrix, DenseVector}
+import java.util.StringTokenizer
+
+import breeze.linalg.{DenseVector}
 
 import scala.collection.mutable
 
@@ -74,6 +76,25 @@ trait Model {
   var isTraining = true
 
   def setTrainingMode(train: Boolean): Unit = isTraining = train
+
+  def loadFixedWordVectors(wordDim: Int): Unit = {
+    for(line <- io.Source.fromFile("./data/assignment3/word2vec/vectors.txt", "ISO-8859-1").getLines() ) {
+      var count = 0
+      val tokenizer = new StringTokenizer(line, " ")
+      val values = mutable.Buffer[Double]()
+
+      var word = ""
+      while(tokenizer.hasMoreTokens && count <= wordDim) {
+        if(count == 0) {
+          word = tokenizer.nextToken()
+        } else {
+          values += tokenizer.nextToken().toDouble
+        }
+        count += 1
+      }
+      LookupTable.addFixedWordVector(word, new Vector(values.toArray))
+    }
+  }
 }
 
 
@@ -95,7 +116,16 @@ class SumOfWordVectorsModel(embeddingSize: Int, regularizationStrength: Double =
    */
   vectorParams += "param_w" -> VectorParam(embeddingSize) //todo : ???
 
-  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+//  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+  def wordToVector(word: String): Block[Vector] = { //todo: ???
+  var vectorBlock: Block[Vector] = null
+  try {
+      vectorBlock = LookupTable.get(word)
+    }catch  {
+      case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
+    }
+    vectorBlock
+  }
 
 
   def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = Sum(words) //todo: ???
@@ -130,7 +160,16 @@ class RecurrentNeuralNetworkModel(embeddingSize: Int, hiddenSize: Int,
     matrixParams += "param_Wx" -> MatrixParam(hiddenSize, embeddingSize) //todo: ???
     matrixParams += "param_Wh" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
 
-  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+//  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+  def wordToVector(word: String): Block[Vector] = { //todo: ???
+  var vectorBlock: Block[Vector] = null
+    try {
+      vectorBlock = LookupTable.get(word)
+    }catch  {
+      case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
+    }
+    vectorBlock
+  }
 
   def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = { //todo: ???
     val h_0 = Tanh( Sum( Seq( Mul(matrixParams("param_Wh"), vectorParams("param_h0")), vectorParams("param_b") ) ) )
@@ -173,7 +212,16 @@ class RecurrentNeuralNetworkModelReLU(embeddingSize: Int, hiddenSize: Int,
   matrixParams += "param_Wx" -> MatrixParam(hiddenSize, embeddingSize) //todo: ???
   matrixParams += "param_Wh" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
 
-  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+//  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+  def wordToVector(word: String): Block[Vector] = { //todo: ???
+  var vectorBlock: Block[Vector] = null
+    try {
+      vectorBlock = LookupTable.get(word)
+    }catch  {
+      case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
+    }
+    vectorBlock
+  }
 
   def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = { //todo: ???
   val h_0 = Sum( Seq( VectorConstant(DenseVector.zeros[Double](hiddenSize)) ) )
@@ -218,7 +266,16 @@ class RecurrentNeuralNetworkModelDropout(embeddingSize: Int, hiddenSize: Int,
   matrixParams += "param_Wx" -> MatrixParam(hiddenSize, embeddingSize) //todo: ???
   matrixParams += "param_Wh" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
 
-  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+//  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+  def wordToVector(word: String): Block[Vector] = { //todo: ???
+  var vectorBlock: Block[Vector] = null
+    try {
+      vectorBlock = LookupTable.get(word)
+    }catch  {
+      case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
+    }
+    vectorBlock
+  }
 
   def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = { //todo: ???
       val h_0 = Tanh( Sum( Seq( Mul(matrixParams("param_Wh"), vectorParams("param_h0")), vectorParams("param_b") ) ) )
@@ -272,7 +329,16 @@ class RecurrentNeuralNetworkModelLSTM(embeddingSize: Int, hiddenSize: Int,
   matrixParams += "param_Who" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
   matrixParams += "param_Whc" -> MatrixParam(hiddenSize, hiddenSize) //todo: ???
 
-  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+//  def wordToVector(word: String): Block[Vector] = LookupTable.addTrainableWordVector(word, embeddingSize) //todo: ???
+  def wordToVector(word: String): Block[Vector] = { //todo: ???
+  var vectorBlock: Block[Vector] = null
+    try {
+      vectorBlock = LookupTable.get(word)
+    }catch  {
+      case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
+    }
+    vectorBlock
+  }
 
   def wordVectorsToSentenceVector(words: Seq[Block[Vector]]): Block[Vector] = { //todo: ???
 

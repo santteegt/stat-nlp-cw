@@ -11,8 +11,8 @@ object Main extends App {
    */
   //val learningRate = 0.01
   //val vectorRegularizationStrength = 0.01
-  val learningRate = 0.01 //big value yield less epochs
-  val vectorRegularizationStrength = 0.01 // best value until now
+  val learningRate = 0.001 //big value yield less epochs
+  val vectorRegularizationStrength = 0.07 // best value until now
   val matrixRegularizationStrength = 0.0
   val wordDim = 10
   val hiddenDim = 10
@@ -21,9 +21,13 @@ object Main extends App {
   //val trainSetName = "debug"
   val validationSetName = "dev"
 
-  //val model: Model = new SumOfWordVectorsModel(wordDim, vectorRegularizationStrength)
-  //val model: Model = new RecurrentNeuralNetworkModel(wordDim, hiddenDim, vectorRegularizationStrength, matrixRegularizationStrength)
-  val model: Model = new OurOwnModel(wordDim, hiddenDim, vectorRegularizationStrength, matrixRegularizationStrength)
+  val model: Model = new SumOfWordVectorsModel(wordDim, vectorRegularizationStrength)
+//  val model: Model = new RecurrentNeuralNetworkModel(wordDim, hiddenDim, vectorRegularizationStrength, matrixRegularizationStrength)
+//  val model: Model = new RecurrentNeuralNetworkModelDropout(wordDim, hiddenDim, vectorRegularizationStrength, matrixRegularizationStrength)
+//  val model: Model = new RecurrentNeuralNetworkModelLSTM(wordDim, hiddenDim, vectorRegularizationStrength, matrixRegularizationStrength)
+//  val model: Model = new OurOwnModel(wordDim, hiddenDim, vectorRegularizationStrength, matrixRegularizationStrength)
+
+  model.loadFixedWordVectors(wordDim) //precatch vector weights using the word2vec file
 
   def epochHook(iter: Int, accLoss: Double): Unit = {
     println("Epoch %4d\tLoss %8.4f\tTrain Acc %4.2f\tDev Acc %4.2f".format(
