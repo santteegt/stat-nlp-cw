@@ -408,6 +408,14 @@ case class Dropout(prob: Double, arg: Block[Vector], train: Boolean) extends Blo
   }
 }
 
+/**
+  * ... be free, be creative :)
+  */
+
+/**
+  * Element-wise Sigmoid
+  * @param arg
+  */
 case class SigmoidV(arg: Block[Vector]) extends Block[Vector] {
 
   def forward(): Vector = { //todo: ???
@@ -423,6 +431,11 @@ case class SigmoidV(arg: Block[Vector]) extends Block[Vector] {
   }
 }
 
+/**
+  * Multiplication of-word-vectors
+  * @param arg1
+  * @param arg2
+  */
 case class MulV(arg1: Block[Vector], arg2: Block[Vector]) extends Block[Vector] {
   def forward(): Vector = { //todo: ???
     output = arg1.forward() :* arg2.forward()
@@ -438,10 +451,6 @@ case class MulV(arg1: Block[Vector], arg2: Block[Vector]) extends Block[Vector] 
     arg2.update(learningRate)
   }
 }
-
-/**
-  * ... be free, be creative :)
-  */
 
 /**
   * A block representing the sigmoid of a scalar value

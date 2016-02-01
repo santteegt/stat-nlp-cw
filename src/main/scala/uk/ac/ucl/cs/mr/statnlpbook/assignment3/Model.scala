@@ -121,6 +121,7 @@ class SumOfWordVectorsModel(embeddingSize: Int, regularizationStrength: Double =
   var vectorBlock: Block[Vector] = null
   try {
       vectorBlock = LookupTable.get(word)
+      LookupTable.addTrainableWordVector(word, vectorBlock.forward())
     }catch  {
       case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
     }
@@ -420,8 +421,9 @@ class RecurrentNeuralNetworkModelLSTM(embeddingSize: Int, hiddenSize: Int,
     })
   }
 
+//  def scoreSentence(sentence: Block[Vector]): Block[Double] = Sigmoid( Dot(vectorParams("param_w"), sentence) )  //todo: ???
   def scoreSentence(sentence: Block[Vector]): Block[Double] = Sigmoid( Dot(vectorParams("param_w"), Dropout(0.5, sentence, isTraining)) )  //todo: ???
-  //  def scoreSentence(sentence: Block[Vector]): Block[Double] = ReLU( Dot(vectorParams("param_w"), sentence) )  //todo: ???
+//    def scoreSentence(sentence: Block[Vector]): Block[Double] = ReLU( Dot(vectorParams("param_w"), sentence) )  //todo: ???
 
   def regularizer(words: Seq[Block[Vector]]): Loss =
     new LossSum(
