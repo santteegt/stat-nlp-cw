@@ -166,6 +166,7 @@ class RecurrentNeuralNetworkModel(embeddingSize: Int, hiddenSize: Int,
   var vectorBlock: Block[Vector] = null
     try {
       vectorBlock = LookupTable.get(word)
+      LookupTable.addTrainableWordVector(word, vectorBlock.forward())
     }catch  {
       case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
     }
@@ -218,6 +219,7 @@ class RecurrentNeuralNetworkModelReLU(embeddingSize: Int, hiddenSize: Int,
   var vectorBlock: Block[Vector] = null
     try {
       vectorBlock = LookupTable.get(word)
+      LookupTable.addTrainableWordVector(word, vectorBlock.forward())
     }catch  {
       case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
     }
@@ -272,6 +274,7 @@ class RecurrentNeuralNetworkModelDropout(embeddingSize: Int, hiddenSize: Int,
   var vectorBlock: Block[Vector] = null
     try {
       vectorBlock = LookupTable.get(word)
+      LookupTable.addTrainableWordVector(word, vectorBlock.forward())
     }catch  {
       case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
     }
@@ -335,6 +338,7 @@ class RecurrentNeuralNetworkModelLSTM(embeddingSize: Int, hiddenSize: Int,
   var vectorBlock: Block[Vector] = null
     try {
       vectorBlock = LookupTable.get(word)
+      LookupTable.addTrainableWordVector(word, vectorBlock.forward())
     }catch  {
       case e: Exception => vectorBlock = LookupTable.addTrainableWordVector(word, embeddingSize)
     }
