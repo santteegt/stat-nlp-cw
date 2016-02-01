@@ -41,9 +41,12 @@ object Main extends App {
    */
 
   /*
+  val weight = model.vectorParams("param_w")
   for ((paramName, paramBlock) <- model.vectorParams) {
-    scala.tools.nsc.io.File("./data/assignment3/tsne.txt").appendAll(s"${paramName.take(5000)}, ${paramBlock.param}\n")
-
+    if (!paramName.equals("param_w")) {
+        val new_weight = Sigmoid(Dot(weight, paramBlock)).forward()
+        println(s"${paramName} \t ${paramBlock.param} \t $new_weight)\n")
+    }
   }
   for ((paramName, paramBlock) <- model.matrixParams) {
     println(s"$paramName:\n${paramBlock.param}\n")
