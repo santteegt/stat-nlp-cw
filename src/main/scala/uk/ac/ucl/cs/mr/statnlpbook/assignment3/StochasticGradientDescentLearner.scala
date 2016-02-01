@@ -15,7 +15,7 @@ object StochasticGradientDescentLearner extends App {
         model.setTrainingMode(corpus match {
           case "train" => true
           case "debug" => true
-          case "dev" => false
+          case "dev" => true
           case "test" => false
         })
         val epochLoss = model.loss(sentence, target)
