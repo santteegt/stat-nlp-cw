@@ -1,5 +1,9 @@
 # stat-nlp-book
 
+### Important Note
+
+This project was created as a private fork from the original version of the [project book](https://github.com/uclmr/stat-nlp-book) with the aim to complete the coursework assignments of the COMPM083: Statistical Natural Language Processing module.
+
 ### Live Online Version
 
 We are running a [live online version](http://stat-nlp-book.wolfe.ml:9000/template/statnlpbook/04_compgi19/02_overview) of the book. 
